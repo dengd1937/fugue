@@ -1,7 +1,7 @@
 """tests/unit/test_engine/test_state.py — RAGState 与 merge_docs 测试。"""
 
 from fugue.api.types import Document
-from fugue.engine.state import RAGState, RetrieveInput, merge_docs
+from fugue.engine.state import Overwrite, RAGState, RetrieveInput, merge_docs
 
 
 def _doc(source: str, doc_id: str, content: str = "x") -> Document:
@@ -72,3 +72,37 @@ def test_retrieve_input_construct() -> None:
         metadata_filter=None,
     )
     assert item["retriever_name"] == "vector"
+
+
+# ---------------------------------------------------------------------------
+# Overwrite sentinel 测试
+# ---------------------------------------------------------------------------
+
+
+def test_merge_docs_with_overwrite_sentinel() -> None:
+    """new=Overwrite([d1]) → 返回 [d1]（忽略 existing）。"""
+    existing = [_doc("vector", "1", "old")]
+    d1 = _doc("bm25", "99", "new")
+    merged = merge_docs(existing, Overwrite([d1]))
+    assert merged == [d1]
+
+
+def test_merge_docs_with_overwrite_empty() -> None:
+    """new=Overwrite([]) → 返回 []。"""
+    existing = [_doc("vector", "1")]
+    merged = merge_docs(existing, Overwrite([]))
+    assert merged == []
+
+
+def test_overwrite_is_frozen() -> None:
+    """Overwrite 是 frozen dataclass，不可变。"""
+    import dataclasses
+    assert dataclasses.is_dataclass(Overwrite)
+    fields_info = {f.name: f for f in dataclasses.fields(Overwrite)}
+    assert "values" in fields_info
+    ow = Overwrite(values=[])
+    try:
+        ow.values = []  # type: ignore[misc]
+        raise AssertionError("Should have raised FrozenInstanceError")
+    except dataclasses.FrozenInstanceError:
+        pass

@@ -6,9 +6,10 @@ re-export 的 API。
 """
 
 from fugue.engine.runtime import get_config
-from fugue.engine.state import RAGState, RetrieveInput, merge_docs
+from fugue.engine.state import Overwrite, RAGState, RetrieveInput, merge_docs
 
 __all__ = [
+    "Overwrite",
     "RAGState",
     "RetrieveInput",
     "get_config",
