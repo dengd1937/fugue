@@ -67,3 +67,8 @@ markers = [
     "e2e: marks tests as end-to-end (requires API keys)",
 ]
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "types-pyyaml>=6.0.12.20260510",
+]
