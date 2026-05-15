@@ -1,0 +1,19 @@
+# serializer version: 1
+# name: test_hyde_prompt_snapshot
+  '''
+  针对以下问题生成 3 段假设性的简短回答，每段用空行分隔，用于检索相关文档：
+  测试查询
+  '''
+# ---
+# name: test_rewrite_prompt_snapshot
+  '''
+  请将以下问题改写成 3 个不同的表述，每行一个，不要编号，不要解释：
+  测试查询
+  '''
+# ---
+# name: test_step_back_prompt_snapshot
+  '''
+  请将以下问题抽象为 3 个更宏观的上位问题，每行一个，不要编号，不要解释：
+  测试查询
+  '''
+# ---
