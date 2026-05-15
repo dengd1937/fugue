@@ -86,10 +86,9 @@ def test_chunk_overlap_adjacent_chunks_have_overlap() -> None:
         # 验证相邻 chunks 之间有重叠：nxt 的开头应出现在 current 中
         # 或者 current 的尾部应出现在 nxt 中（至少 1 字符重叠）
         has_overlap = any(
-            len(sub) >= 1 and sub in current
-            for sub in [nxt[:k] for k in range(1, min(64 + 1, len(nxt) + 1))]
+            len(sub) >= 1 and sub in current for sub in [nxt[:k] for k in range(1, min(64 + 1, len(nxt) + 1))]
         )
-        assert has_overlap, f"chunks[{i}] 和 chunks[{i+1}] 之间没有 substring 重叠"
+        assert has_overlap, f"chunks[{i}] 和 chunks[{i + 1}] 之间没有 substring 重叠"
 
 
 # ---------------------------------------------------------------------------
@@ -264,9 +263,7 @@ def test_large_document_with_multiple_separators() -> None:
 
     assert len(chunks) >= 1
     for i, chunk in enumerate(chunks):
-        assert len(chunk.content) <= 500, (
-            f"chunks[{i}] 长度为 {len(chunk.content)}，超过 500"
-        )
+        assert len(chunk.content) <= 500, f"chunks[{i}] 长度为 {len(chunk.content)}，超过 500"
 
 
 # ---------------------------------------------------------------------------
@@ -289,9 +286,7 @@ def test_oversized_piece_triggers_deep_recursion() -> None:
 
     assert len(chunks) >= 2
     for i, chunk in enumerate(chunks):
-        assert len(chunk.content) <= 100, (
-            f"chunks[{i}] 长度 {len(chunk.content)} 超过 100"
-        )
+        assert len(chunk.content) <= 100, f"chunks[{i}] 长度 {len(chunk.content)} 超过 100"
 
 
 def test_accumulated_pieces_exceed_chunk_size_triggers_recursive_split() -> None:
@@ -308,6 +303,4 @@ def test_accumulated_pieces_exceed_chunk_size_triggers_recursive_split() -> None
 
     assert len(chunks) >= 2
     for i, chunk in enumerate(chunks):
-        assert len(chunk.content) <= 100, (
-            f"chunks[{i}] 长度 {len(chunk.content)} 超过 100"
-        )
+        assert len(chunk.content) <= 100, f"chunks[{i}] 长度 {len(chunk.content)} 超过 100"

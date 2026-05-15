@@ -18,9 +18,7 @@ from fugue.registry import (
 
 
 def _doc(source: str, doc_id: str, score: float = 0.9, content: str = "x") -> Document:
-    return Document(
-        doc_id=doc_id, content=content, score=score, source=source, metadata={}
-    )
+    return Document(doc_id=doc_id, content=content, score=score, source=source, metadata={})
 
 
 @pytest.fixture
@@ -49,16 +47,17 @@ def clean_registries():
 def _register_minimal(clean_registries: Any) -> None:
     """注册最小可用 handlers（mock 各 transform / retriever / grader / processor / generator）。"""
     transform_registry.register("rewrite", lambda q, n: [f"rewrite_{i}" for i in range(n)])
-    retriever_registry.register("vector", lambda query, metadata_filter=None: [
-        _doc("vector", f"v_{query[:20]}", score=0.9)
-    ])
-    retriever_registry.register("bm25", lambda query, metadata_filter=None: [
-        _doc("bm25", f"b_{query[:20]}", score=15.0)
-    ])
+    retriever_registry.register(
+        "vector", lambda query, metadata_filter=None: [_doc("vector", f"v_{query[:20]}", score=0.9)]
+    )
+    retriever_registry.register(
+        "bm25", lambda query, metadata_filter=None: [_doc("bm25", f"b_{query[:20]}", score=15.0)]
+    )
     processor_registry.register("identity", lambda docs, q, k, **kw: docs[:k])
     generator_registry.register("basic", lambda q, docs, t: f"answer: {len(docs)} docs")
     # grader: 通过 import 已注册（task 14 模块导入自动注册），需重新注册因清空了
     from fugue.handlers.graders.score import score_grader
+
     grader_registry.register("score", score_grader)
 
 
@@ -150,9 +149,7 @@ def test_fallback_loop(clean_registries) -> None:
     """grade 第一次 insufficient → prepare_fallback → 切到 web → 第二次 sufficient。"""
     _register_minimal(clean_registries)
     # 注册 web retriever
-    retriever_registry.register("web", lambda query, metadata_filter=None: [
-        _doc("web", f"w_{query[:20]}", score=0.95)
-    ])
+    retriever_registry.register("web", lambda query, metadata_filter=None: [_doc("web", f"w_{query[:20]}", score=0.95)])
 
     # 第一次 grader 返回 insufficient，第二次返回 sufficient
     call_count = {"n": 0}
@@ -184,9 +181,7 @@ def test_fallback_loop(clean_registries) -> None:
 def test_overwrite_resets_documents_across_fallback(clean_registries) -> None:
     """fallback 第二轮 retrieve 后 documents 不含第一轮（Overwrite([]) 工作）。"""
     _register_minimal(clean_registries)
-    retriever_registry.register("web", lambda query, metadata_filter=None: [
-        _doc("web", f"w_{query[:20]}", score=0.95)
-    ])
+    retriever_registry.register("web", lambda query, metadata_filter=None: [_doc("web", f"w_{query[:20]}", score=0.95)])
 
     call_count = {"n": 0}
 

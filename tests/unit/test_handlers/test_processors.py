@@ -51,13 +51,11 @@ def test_rrf_basic_scores(three_docs):
     assert len(result) == 3
 
     # 构建 (source, doc_id) → score 映射
-    score_map: dict[tuple[str, str], float] = {
-        (d["source"], d["doc_id"]): d["score"] for d in result
-    }
+    score_map: dict[tuple[str, str], float] = {(d["source"], d["doc_id"]): d["score"] for d in result}
 
-    expected_vector_a = 1.0 / (RRF_K + 1)   # rank=1
-    expected_vector_b = 1.0 / (RRF_K + 2)   # rank=2
-    expected_bm25_a = 1.0 / (RRF_K + 1)     # rank=1（bm25 组内 rank=1）
+    expected_vector_a = 1.0 / (RRF_K + 1)  # rank=1
+    expected_vector_b = 1.0 / (RRF_K + 2)  # rank=2
+    expected_bm25_a = 1.0 / (RRF_K + 1)  # rank=1（bm25 组内 rank=1）
 
     assert score_map[("vector", "a")] == pytest.approx(expected_vector_a)
     assert score_map[("vector", "b")] == pytest.approx(expected_vector_b)
@@ -71,13 +69,9 @@ def test_rrf_weighted(three_docs):
     """bm25 权重 0.5，相同 rank 下 bm25 分数是 vector 的一半。"""
     from fugue.handlers.processors.rrf import rrf_fn
 
-    result = rrf_fn(
-        three_docs, "q", top_k=10, retriever_weights={"vector": 1.0, "bm25": 0.5}
-    )
+    result = rrf_fn(three_docs, "q", top_k=10, retriever_weights={"vector": 1.0, "bm25": 0.5})
 
-    score_map: dict[tuple[str, str], float] = {
-        (d["source"], d["doc_id"]): d["score"] for d in result
-    }
+    score_map: dict[tuple[str, str], float] = {(d["source"], d["doc_id"]): d["score"] for d in result}
 
     # vector rank=1 → 1.0/(60+1); bm25 rank=1 → 0.5/(60+1)
     vector_a_score = score_map[("vector", "a")]
@@ -116,10 +110,7 @@ def test_rrf_top_k_truncation():
     """5 docs，top_k=2 只返回 2 个。"""
     from fugue.handlers.processors.rrf import rrf_fn
 
-    docs = [
-        Document(doc_id=f"d{i}", content=f"c{i}", score=float(i), source="vector", metadata={})
-        for i in range(5)
-    ]
+    docs = [Document(doc_id=f"d{i}", content=f"c{i}", score=float(i), source="vector", metadata={}) for i in range(5)]
     result = rrf_fn(docs, "q", top_k=2)
     assert len(result) == 2
 

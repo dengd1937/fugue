@@ -1,5 +1,16 @@
-"""src/fugue/handlers/__init__.py — 顶层 import 触发子模块注册副作用。
+"""src/fugue/handlers/__init__.py — 触发各子目录注册副作用。
 
-各子模块的 __init__.py 在 import 时执行 registry 注册（部分需要 LLM
-注入的延迟到 register_*(client) 调用）。
+graders/parsers/chunkers 在子目录 __init__.py import 时即注册（无依赖）；
+transforms/retrievers/processors/generators 需要 RAG.__init__ 显式调用
+register_*(client/provider) 完成注册（带闭包注入）。
 """
+
+from fugue.handlers import (  # noqa: F401  # triggers side-effect registration
+    chunkers,
+    generators,
+    graders,
+    parsers,
+    processors,
+    retrievers,
+    transforms,
+)

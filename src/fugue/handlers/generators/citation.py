@@ -19,15 +19,14 @@ CITATION_PROMPT_TEMPLATE = (
 
 def make_citation_generator(llm: LLMClient) -> GeneratorFn:
     """返回 citation generator 闭包，闭包绑定 LLM client。"""
+
     def citation_fn(
         query: str,
         docs: list[Document],
         temperature: float,
         **kwargs: Any,  # noqa: ARG001
     ) -> str:
-        context = "\n\n".join(
-            f"[{i + 1}] {d['content']}" for i, d in enumerate(docs)
-        )
+        context = "\n\n".join(f"[{i + 1}] {d['content']}" for i, d in enumerate(docs))
         prompt = CITATION_PROMPT_TEMPLATE.format(context=context, query=query)
         return llm.complete(prompt, temperature=temperature)
 

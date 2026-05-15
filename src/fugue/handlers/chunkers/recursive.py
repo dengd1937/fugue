@@ -54,9 +54,7 @@ def _recursive_split(
                 chunks.append(merged)
             else:
                 # 进一步递归切分这个超长合并块
-                chunks.extend(
-                    _recursive_split(merged, chunk_size, chunk_overlap, remaining_seps)
-                )
+                chunks.extend(_recursive_split(merged, chunk_size, chunk_overlap, remaining_seps))
             # 启用 overlap：保留尾部 overlap 字符作下一 batch 起点
             overlap_text = merged[-chunk_overlap:] if chunk_overlap > 0 and merged else ""
             current = [overlap_text] if overlap_text else []
@@ -67,9 +65,7 @@ def _recursive_split(
                 chunks.append(separator.join(current))
                 current = []
                 current_len = 0
-            chunks.extend(
-                _recursive_split(piece, chunk_size, chunk_overlap, remaining_seps)
-            )
+            chunks.extend(_recursive_split(piece, chunk_size, chunk_overlap, remaining_seps))
         else:
             current.append(piece)
             current_len += piece_len
@@ -78,9 +74,7 @@ def _recursive_split(
     return [c for c in chunks if c]
 
 
-def _char_split_with_overlap(
-    text: str, chunk_size: int, chunk_overlap: int
-) -> list[str]:
+def _char_split_with_overlap(text: str, chunk_size: int, chunk_overlap: int) -> list[str]:
     """字符级滑动窗口切分，固定步长 = chunk_size - chunk_overlap。"""
     if not text:
         return []
@@ -115,9 +109,7 @@ def recursive_chunker(
     for parsed in parsed_docs:
         source_path = str(parsed.source_path)
         parent_id = _hash_id(source_path)
-        text_chunks = _recursive_split(
-            parsed.content, chunk_size, chunk_overlap, SEPARATORS
-        )
+        text_chunks = _recursive_split(parsed.content, chunk_size, chunk_overlap, SEPARATORS)
         for idx, content in enumerate(text_chunks):
             chunk_id = _hash_id(source_path, str(idx), content[:128])
             metadata = {

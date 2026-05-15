@@ -9,15 +9,12 @@ from fugue.providers.llm import LLMClient
 GeneratorFn = Callable[..., str]
 
 
-BASIC_PROMPT_TEMPLATE = (
-    "基于以下上下文回答问题。\n\n"
-    "上下文：\n{context}\n\n"
-    "问题：{query}"
-)
+BASIC_PROMPT_TEMPLATE = "基于以下上下文回答问题。\n\n上下文：\n{context}\n\n问题：{query}"
 
 
 def make_basic_generator(llm: LLMClient) -> GeneratorFn:
     """返回 basic generator 闭包，闭包绑定 LLM client。"""
+
     def basic_fn(
         query: str,
         docs: list[Document],

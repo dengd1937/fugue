@@ -12,9 +12,7 @@ from fugue.registry import generator_registry, processor_registry
 
 
 def _doc(source: str, doc_id: str, score: float = 0.9, content: str = "x") -> Document:
-    return Document(
-        doc_id=doc_id, content=content, score=score, source=source, metadata={}
-    )
+    return Document(doc_id=doc_id, content=content, score=score, source=source, metadata={})
 
 
 def _state(
@@ -75,10 +73,12 @@ def test_post_process_cross_round_merge_dedup(clean_processor_registry) -> None:
     processor_registry.register("identity", identity)
 
     state = _state(docs=[d1], history=[[d2], [d1]])
-    config = {"configurable": {
-        "processors": ["identity"],
-        "top_k": 10,
-    }}
+    config = {
+        "configurable": {
+            "processors": ["identity"],
+            "top_k": 10,
+        }
+    }
     result = post_process(state, config)  # type: ignore[arg-type]
     docs = result["ranked_documents"]
     # 当前轮 d1 + 历史 d2，d1 去重
@@ -139,12 +139,14 @@ def test_post_process_kwargs_passthrough(clean_processor_registry) -> None:
     processor_registry.register("identity", identity)
 
     state = _state(docs=[_doc("v", "1")])
-    config = {"configurable": {
-        "processors": ["identity"],
-        "top_k": 7,
-        "retriever_weights": {"vector": 1.0},
-        "score_normalizers": {"bm25": 20.0},
-    }}
+    config = {
+        "configurable": {
+            "processors": ["identity"],
+            "top_k": 7,
+            "retriever_weights": {"vector": 1.0},
+            "score_normalizers": {"bm25": 20.0},
+        }
+    }
     post_process(state, config)  # type: ignore[arg-type]
     call = identity.call_args
     # positional: (docs, query, top_k)

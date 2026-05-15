@@ -65,12 +65,14 @@ def test_query_transform_basic_fanout(clean_transform_registry) -> None:
     """transforms=['rewrite'] + n=2 + retrievers=['vector']
     → 3 queries × 1 retriever = 3 Send，原 query 在第 0 位。"""
     transform_registry.register("rewrite", lambda q, n: ["q1", "q2"])
-    config = {"configurable": {
-        "transforms": ["rewrite"],
-        "n_rewrites": 2,
-        "retrievers": ["vector"],
-        "max_queries": 20,
-    }}
+    config = {
+        "configurable": {
+            "transforms": ["rewrite"],
+            "n_rewrites": 2,
+            "retrievers": ["vector"],
+            "max_queries": 20,
+        }
+    }
     cmd = query_transform(_initial_state(), config)
     assert isinstance(cmd, Command)
     assert cmd.update is not None
@@ -92,11 +94,13 @@ def test_query_transform_basic_fanout(clean_transform_registry) -> None:
 def test_query_transform_dedup(clean_transform_registry) -> None:
     """transforms 产出重复 query 被去重保留首次。"""
     transform_registry.register("rewrite", lambda q, n: ["原问题", "q1", "q1"])
-    config = {"configurable": {
-        "transforms": ["rewrite"],
-        "n_rewrites": 3,
-        "retrievers": ["vector"],
-    }}
+    config = {
+        "configurable": {
+            "transforms": ["rewrite"],
+            "n_rewrites": 3,
+            "retrievers": ["vector"],
+        }
+    }
     cmd = query_transform(_initial_state(), config)
     # 原 query 在第 0，"原问题" 重复被去重
     assert cmd.update["rewritten_queries"] == ["原问题", "q1"]
@@ -105,12 +109,14 @@ def test_query_transform_dedup(clean_transform_registry) -> None:
 def test_query_transform_max_queries_truncation(clean_transform_registry) -> None:
     """all_queries 超过 max_queries 时截断。"""
     transform_registry.register("rewrite", lambda q, n: [f"q{i}" for i in range(20)])
-    config = {"configurable": {
-        "transforms": ["rewrite"],
-        "n_rewrites": 20,
-        "retrievers": ["vector"],
-        "max_queries": 5,
-    }}
+    config = {
+        "configurable": {
+            "transforms": ["rewrite"],
+            "n_rewrites": 20,
+            "retrievers": ["vector"],
+            "max_queries": 5,
+        }
+    }
     cmd = query_transform(_initial_state(), config)
     assert len(cmd.update["rewritten_queries"]) == 5
 
@@ -118,11 +124,13 @@ def test_query_transform_max_queries_truncation(clean_transform_registry) -> Non
 def test_query_transform_fallback_single_source(clean_transform_registry) -> None:
     """state.source != 'kb' 时只用 [source] 作 retriever_names。"""
     transform_registry.register("rewrite", lambda q, n: ["q1"])
-    config = {"configurable": {
-        "transforms": ["rewrite"],
-        "n_rewrites": 1,
-        "retrievers": ["vector", "bm25"],
-    }}
+    config = {
+        "configurable": {
+            "transforms": ["rewrite"],
+            "n_rewrites": 1,
+            "retrievers": ["vector", "bm25"],
+        }
+    }
     cmd = query_transform(_initial_state(source="web"), config)
     # retriever_names 应该只有 "web"
     sends = cmd.goto
@@ -138,11 +146,13 @@ def test_query_transform_transform_result_with_metadata_filter(
         "self_query",
         lambda q, n: [TransformResult(query="2024 论文", metadata_filter={"year": 2024})],
     )
-    config = {"configurable": {
-        "transforms": ["self_query"],
-        "n_rewrites": 1,
-        "retrievers": ["vector"],
-    }}
+    config = {
+        "configurable": {
+            "transforms": ["self_query"],
+            "n_rewrites": 1,
+            "retrievers": ["vector"],
+        }
+    }
     cmd = query_transform(_initial_state(), config)
     sends = cmd.goto
     # 找到那个 query=="2024 论文" 的 Send
@@ -169,17 +179,21 @@ def test_query_transform_documents_overwrite_sentinel(clean_transform_registry) 
 
 
 def test_retrieve_success_sets_source(clean_retriever_registry) -> None:
-    mock_fn = MagicMock(return_value=[
-        Document(doc_id="d1", content="x", score=0.9, source="raw", metadata={}),
-        Document(doc_id="d2", content="y", score=0.8, source="raw", metadata={}),
-    ])
+    mock_fn = MagicMock(
+        return_value=[
+            Document(doc_id="d1", content="x", score=0.9, source="raw", metadata={}),
+            Document(doc_id="d2", content="y", score=0.8, source="raw", metadata={}),
+        ]
+    )
     retriever_registry.register("vector", mock_fn)
-    result = retrieve({
-        "query": "q",
-        "retriever_name": "vector",
-        "source": "kb",
-        "metadata_filter": None,
-    })
+    result = retrieve(
+        {
+            "query": "q",
+            "retriever_name": "vector",
+            "source": "kb",
+            "metadata_filter": None,
+        }
+    )
     assert len(result["documents"]) == 2
     assert all(d["source"] == "vector" for d in result["documents"])
 
@@ -189,12 +203,14 @@ def test_retrieve_exception_best_effort(clean_retriever_registry, caplog) -> Non
     mock_fn = MagicMock(side_effect=RuntimeError("simulated"))
     retriever_registry.register("vector", mock_fn)
     with caplog.at_level(logging.ERROR, logger="fugue.engine.nodes.retrieve"):
-        result = retrieve({
-            "query": "q",
-            "retriever_name": "vector",
-            "source": "kb",
-            "metadata_filter": None,
-        })
+        result = retrieve(
+            {
+                "query": "q",
+                "retriever_name": "vector",
+                "source": "kb",
+                "metadata_filter": None,
+            }
+        )
     assert result == {"documents": []}
     assert any("simulated" in r.getMessage() for r in caplog.records)
 
@@ -202,11 +218,13 @@ def test_retrieve_exception_best_effort(clean_retriever_registry, caplog) -> Non
 def test_retrieve_metadata_filter_passthrough(clean_retriever_registry) -> None:
     mock_fn = MagicMock(return_value=[])
     retriever_registry.register("vector", mock_fn)
-    retrieve({
-        "query": "q",
-        "retriever_name": "vector",
-        "source": "kb",
-        "metadata_filter": {"year": 2024},
-    })
+    retrieve(
+        {
+            "query": "q",
+            "retriever_name": "vector",
+            "source": "kb",
+            "metadata_filter": {"year": 2024},
+        }
+    )
     # 检查 fn 被以 metadata_filter={"year": 2024} 调用
     mock_fn.assert_called_once_with(query="q", metadata_filter={"year": 2024})

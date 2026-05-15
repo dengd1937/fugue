@@ -21,8 +21,7 @@ def auto_parser(path: Path) -> list[ParsedDocument]:
     parser = _EXTENSION_PARSERS.get(ext)
     if parser is None:
         raise ValueError(
-            f"unsupported extension '{ext}' for file '{path}'. "
-            f"Supported: {sorted(_EXTENSION_PARSERS.keys())}"
+            f"unsupported extension '{ext}' for file '{path}'. Supported: {sorted(_EXTENSION_PARSERS.keys())}"
         )
     return parser(path)
 

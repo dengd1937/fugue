@@ -31,8 +31,10 @@ def sample_pdf(tmp_path_factory):
 def mock_embedding():
     """Mock EmbeddingClient，返回 8 维 0.1 向量。"""
     client = MagicMock()
+
     def fake_embed(texts):
         return [[0.1] * 8 for _ in texts]
+
     client.embed.side_effect = fake_embed
     return client
 
@@ -103,9 +105,7 @@ def test_glob_expansion(mock_embedding, real_chroma, real_bm25) -> None:
 # 3. bm25 update（retrievers 含 bm25） ------------------------------
 
 
-def test_bm25_update_when_retrievers_include_bm25(
-    mock_embedding, real_chroma
-) -> None:
+def test_bm25_update_when_retrievers_include_bm25(mock_embedding, real_chroma) -> None:
     """retrievers=['bm25'] 时 BM25 索引能 search 到内容。"""
     bm25 = BM25Provider()
     pipeline = IngestPipeline(
@@ -123,9 +123,7 @@ def test_bm25_update_when_retrievers_include_bm25(
 # 4. bm25 skip（retrievers 不含 bm25） ------------------------------
 
 
-def test_bm25_skip_when_retrievers_excludes_bm25(
-    mock_embedding, real_chroma
-) -> None:
+def test_bm25_skip_when_retrievers_excludes_bm25(mock_embedding, real_chroma) -> None:
     """retrievers=['vector'] 时 bm25_provider.update 不被调用。"""
     bm25_spy = MagicMock(spec=BM25Provider)
     pipeline = IngestPipeline(
@@ -175,9 +173,7 @@ def test_empty_sources(mock_embedding, real_chroma, real_bm25) -> None:
 # 7. 未知扩展名 ----------------------------------------------------
 
 
-def test_unknown_extension_raises(
-    mock_embedding, real_chroma, real_bm25, tmp_path
-) -> None:
+def test_unknown_extension_raises(mock_embedding, real_chroma, real_bm25, tmp_path) -> None:
     """未知扩展抛 ValueError（auto_parser 错误透传）。"""
     unknown = tmp_path / "test.xyz"
     unknown.write_text("content")

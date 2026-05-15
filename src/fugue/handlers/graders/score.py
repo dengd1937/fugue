@@ -23,7 +23,5 @@ def score_grader(
     normalizers = score_normalizers or {}
     normalized = [normalize_score(d, normalizers) for d in docs]
     avg = sum(normalized) / len(normalized)
-    decision: Literal["sufficient", "insufficient"] = (
-        "sufficient" if avg >= threshold else "insufficient"
-    )
+    decision: Literal["sufficient", "insufficient"] = "sufficient" if avg >= threshold else "insufficient"
     return avg, decision

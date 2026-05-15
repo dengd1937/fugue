@@ -99,9 +99,7 @@ class IngestPipeline:
             duration_seconds=time.perf_counter() - start,
         )
 
-    def _expand_sources(
-        self, sources: str | Path | Iterable[str | Path]
-    ) -> list[Path]:
+    def _expand_sources(self, sources: str | Path | Iterable[str | Path]) -> list[Path]:
         """glob 展开 sources 为有序 Path 列表（去重）。"""
         if isinstance(sources, (str, Path)):
             sources_list: list[str | Path] = [sources]

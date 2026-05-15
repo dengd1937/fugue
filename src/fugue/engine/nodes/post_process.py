@@ -27,11 +27,11 @@ def _merge_dedupe(*lists: list[Document]) -> list[Document]:
 
 def post_process(state: RAGState, config: RunnableConfig) -> dict[str, Any]:
     """1. 合并 state.documents + retrieval_history[:-1]（最后一项是当前轮，已在 documents）
-       2. 按 (source, doc_id) 去重
-       3. 防御性上界：> 1000 docs 时按 score 降序截断到 1000
-       4. 链式 processors（按 cfg.processors 顺序）
-       5. top_k 截断
-       6. 返回 {ranked_documents}
+    2. 按 (source, doc_id) 去重
+    3. 防御性上界：> 1000 docs 时按 score 降序截断到 1000
+    4. 链式 processors（按 cfg.processors 顺序）
+    5. top_k 截断
+    6. 返回 {ranked_documents}
     """
     cfg = get_config(config)
     current_docs = list(state.get("documents", []))
@@ -44,9 +44,7 @@ def post_process(state: RAGState, config: RunnableConfig) -> dict[str, Any]:
 
     # 3. 防御性上界
     if len(merged) > MAX_DOCS_BEFORE_PROCESS:
-        merged = sorted(merged, key=lambda d: d["score"], reverse=True)[
-            :MAX_DOCS_BEFORE_PROCESS
-        ]
+        merged = sorted(merged, key=lambda d: d["score"], reverse=True)[:MAX_DOCS_BEFORE_PROCESS]
 
     # 4. 链式 processors
     docs: list[Document] = merged

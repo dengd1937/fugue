@@ -18,3 +18,8 @@ source_modules =
 forbidden_modules =
     langgraph
     langchain_core
+# fugue.api.rag is the top-level public API that must bridge into the engine layer.
+# We allow the single crossing fugue.api.rag -> fugue.engine.graph so that
+# the forbidden checker does not trace through this edge into langgraph/langchain_core.
+ignore_imports =
+    fugue.api.rag -> fugue.engine.graph

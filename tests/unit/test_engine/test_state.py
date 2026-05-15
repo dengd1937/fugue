@@ -5,9 +5,7 @@ from fugue.engine.state import Overwrite, RAGState, RetrieveInput, merge_docs
 
 
 def _doc(source: str, doc_id: str, content: str = "x") -> Document:
-    return Document(
-        doc_id=doc_id, content=content, score=0.9, source=source, metadata={}
-    )
+    return Document(doc_id=doc_id, content=content, score=0.9, source=source, metadata={})
 
 
 def test_merge_docs_basic_dedup() -> None:
@@ -97,6 +95,7 @@ def test_merge_docs_with_overwrite_empty() -> None:
 def test_overwrite_is_frozen() -> None:
     """Overwrite 是 frozen dataclass，不可变。"""
     import dataclasses
+
     assert dataclasses.is_dataclass(Overwrite)
     fields_info = {f.name: f for f in dataclasses.fields(Overwrite)}
     assert "values" in fields_info

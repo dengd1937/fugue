@@ -25,14 +25,14 @@ def _dedupe_keep_order(items: list[str]) -> list[str]:
 
 def query_transform(state: RAGState, config: RunnableConfig) -> Command[Any]:
     """1. 原始 query 始终在第 0 位
-       2. 遍历 cfg.transforms 顶层分支，调用 run_transform_branch
-       3. TransformResult 提取在此节点进行
-       4. 去重 + 截断 cfg.max_queries
-       5. 按 source 决定 retriever_names
-       6. 构建 Send 列表（笛卡尔积 queries × retriever_names）
-       7. Command(update={'rewritten_queries': all_queries,
-                          'documents': Overwrite([])},
-                  goto=sends)
+    2. 遍历 cfg.transforms 顶层分支，调用 run_transform_branch
+    3. TransformResult 提取在此节点进行
+    4. 去重 + 截断 cfg.max_queries
+    5. 按 source 决定 retriever_names
+    6. 构建 Send 列表（笛卡尔积 queries × retriever_names）
+    7. Command(update={'rewritten_queries': all_queries,
+                       'documents': Overwrite([])},
+               goto=sends)
     """
     cfg = get_config(config)
     original_query = state["original_query"]

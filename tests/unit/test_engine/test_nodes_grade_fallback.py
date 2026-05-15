@@ -8,9 +8,7 @@ from fugue.engine.state import RAGState
 
 
 def _doc(source: str, doc_id: str, score: float = 0.9) -> Document:
-    return Document(
-        doc_id=doc_id, content="x", score=score, source=source, metadata={}
-    )
+    return Document(doc_id=doc_id, content="x", score=score, source=source, metadata={})
 
 
 def _state(
@@ -43,11 +41,13 @@ def test_grade_basic_sufficient() -> None:
         _doc("vector", "1", score=0.8),
         _doc("vector", "2", score=0.9),
     ]
-    config = {"configurable": {
-        "grade_strategy": "score",
-        "grade_threshold": 0.6,
-        "score_normalizers": {},
-    }}
+    config = {
+        "configurable": {
+            "grade_strategy": "score",
+            "grade_threshold": 0.6,
+            "score_normalizers": {},
+        }
+    }
     result = grade(_state(docs=docs), config)  # type: ignore[arg-type]
     assert "grade_score" in result
     assert "grade_decision" in result
@@ -91,25 +91,37 @@ def test_route_insufficient_empty_fallback_goes_to_post_process() -> None:
 
 def test_route_insufficient_with_fallback_available() -> None:
     config = {"configurable": {"fallback_chain": ["web"], "max_retries": 1}}
-    assert route_after_grade(
-        _state(decision="insufficient", retry_count=0), config  # type: ignore[arg-type]
-    ) == "fallback_to_query_transform"
+    assert (
+        route_after_grade(
+            _state(decision="insufficient", retry_count=0),
+            config,  # type: ignore[arg-type]
+        )
+        == "fallback_to_query_transform"
+    )
 
 
 def test_route_insufficient_fallback_exhausted_by_count() -> None:
     """retry_count 已等于 fallback_chain 长度，无下一个 source 可用。"""
     config = {"configurable": {"fallback_chain": ["web"], "max_retries": 5}}
-    assert route_after_grade(
-        _state(decision="insufficient", retry_count=1), config  # type: ignore[arg-type]
-    ) == "post_process"
+    assert (
+        route_after_grade(
+            _state(decision="insufficient", retry_count=1),
+            config,  # type: ignore[arg-type]
+        )
+        == "post_process"
+    )
 
 
 def test_route_insufficient_max_retries_reached() -> None:
     """retry_count 已达 max_retries 上限。"""
     config = {"configurable": {"fallback_chain": ["web", "kg"], "max_retries": 1}}
-    assert route_after_grade(
-        _state(decision="insufficient", retry_count=1), config  # type: ignore[arg-type]
-    ) == "post_process"
+    assert (
+        route_after_grade(
+            _state(decision="insufficient", retry_count=1),
+            config,  # type: ignore[arg-type]
+        )
+        == "post_process"
+    )
 
 
 # prepare_fallback 测试 -----------------------------------------------
