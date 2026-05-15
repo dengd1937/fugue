@@ -6,9 +6,7 @@ from pathlib import Path
 import pytest
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """所有 tests/e2e/ 下的测试自动加 e2e marker。"""
     for item in items:
         if "tests/e2e" in str(item.fspath):
