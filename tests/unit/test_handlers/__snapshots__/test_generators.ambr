@@ -1,0 +1,22 @@
+# serializer version: 1
+# name: test_basic_prompt_template_snapshot
+  '''
+  基于以下上下文回答问题。
+  
+  上下文：
+  测试上下文
+  
+  问题：测试查询
+  '''
+# ---
+# name: test_citation_prompt_template_snapshot
+  '''
+  基于以下上下文回答问题，每个论点必须标注来源编号 [1][2]...。
+  来源编号已在每段文档前标注。
+  
+  上下文：
+  [1] 测试
+  
+  问题：测试查询
+  '''
+# ---

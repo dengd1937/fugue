@@ -1,0 +1,25 @@
+[importlinter]
+root_package = fugue
+include_external_packages = True
+
+# fugue.engine is intentionally excluded from source_modules:
+# it is the ONLY module permitted to import langgraph / langchain_core.
+# If you add fugue.engine to source_modules below, you will break the architecture.
+[importlinter:contract:engine-only-langgraph]
+name = engine/ is the only module allowed to import langgraph
+type = forbidden
+source_modules =
+    fugue.api
+    fugue.config
+    fugue.registry
+    fugue.handlers
+    fugue.providers
+    fugue.server
+forbidden_modules =
+    langgraph
+    langchain_core
+# fugue.api.rag is the top-level public API that must bridge into the engine layer.
+# We allow the single crossing fugue.api.rag -> fugue.engine.graph so that
+# the forbidden checker does not trace through this edge into langgraph/langchain_core.
+ignore_imports =
+    fugue.api.rag -> fugue.engine.graph
