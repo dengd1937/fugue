@@ -98,7 +98,16 @@ def require(module_name: str, *, extra: str) -> Any:
 - 消息示例：
   `PDF 解析需要可选依赖 'pypdf'。请运行: pip install 'fugue[pdf]'`
 
-## 4. 测试策略
+### Implementation Deviations
+
+#### 2026-05-17 — bge.py 取 FlagReranker 方式
+**偏差章节**：3.3 改动点
+**原方案**：`FlagReranker = getattr(require("FlagEmbedding", extra="bge"), "FlagReranker")`
+**实际实现**：`_flagembedding = require("FlagEmbedding", extra="bge"); flag_reranker_cls = _flagembedding.FlagReranker`（普通属性访问，snake_case 局部名）
+**原因**：`getattr(obj, "常量字面量")` 触发 ruff B009 需 `# noqa` 抑制；而
+`require()` 已返回 `Any`，普通属性访问对 mypy 同样干净（无 attr-defined），
+运行时行为与 `getattr` 完全等价。改用属性访问消除不必要的 lint 抑制，
+变量名用 snake_case `flag_reranker_cls` 规避 N806。getattr 在此零收益。
 
 - **helper 单测** `tests/unit/test_optional.py`：`require()` 成功返回 +
   缺失抛带 extra 提示的 `ImportError`
