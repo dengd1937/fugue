@@ -9,7 +9,7 @@ from fugue import RAG, FugueConfig, GraphConfig, IngestConfig, ProviderConfig
 
 
 def test_e2e_multipath_with_citation(
-    openai_key: str,
+    e2e_provider: ProviderConfig,
     e2e_fixtures_dir: Path,
     tmp_path: Path,
 ) -> None:
@@ -31,7 +31,7 @@ def test_e2e_multipath_with_citation(
             persist_dir=str(tmp_path / "chroma"),
             collection_name="e2e_multi",
         ),
-        providers=ProviderConfig(llm_api_key=openai_key),
+        providers=e2e_provider,
     )
     with RAG(cfg) as rag:
         rag.ingest(
@@ -51,7 +51,7 @@ def test_e2e_multipath_with_citation(
 
 
 def test_e2e_chinese_query_basic(
-    openai_key: str,
+    e2e_provider: ProviderConfig,
     e2e_fixtures_dir: Path,
     tmp_path: Path,
 ) -> None:
@@ -70,7 +70,7 @@ def test_e2e_chinese_query_basic(
             persist_dir=str(tmp_path / "chroma"),
             collection_name="e2e_zh",
         ),
-        providers=ProviderConfig(llm_api_key=openai_key),
+        providers=e2e_provider,
     )
     with RAG(cfg) as rag:
         rag.ingest(
