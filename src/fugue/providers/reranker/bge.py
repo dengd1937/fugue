@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from FlagEmbedding import FlagReranker
+from fugue._optional import require
 
 
 def _resolve_device(device: Literal["cpu", "cuda", "auto"]) -> str:
@@ -35,8 +35,10 @@ class BGEReranker:
                 FlagReranker.compute_score 未原生支持 timeout；
                 P1 将通过 ThreadPoolExecutor 包装实现。当前值仅存储不强制。**
         """
+        _flagembedding = require("FlagEmbedding", extra="bge")
+        flag_reranker_cls = _flagembedding.FlagReranker
         resolved = _resolve_device(device)
-        self._reranker = FlagReranker(
+        self._reranker = flag_reranker_cls(
             model_name,
             use_fp16=(resolved == "cuda"),  # cpu 不支持 fp16
             devices=[resolved],
