@@ -219,3 +219,37 @@ def test_auto_parser_uppercase_extension(tmp_path: Path) -> None:
 
     assert len(result) == 1
     assert result[0].metadata == {"format": "markdown"}
+
+
+# ---------------------------------------------------------------------------
+# 测试 12: pdf_parser 缺失 pypdf 时抛 ImportError（patch require 接缝）
+# ---------------------------------------------------------------------------
+
+
+def test_pdf_parser_missing_pypdf_raises(tmp_path: Path) -> None:
+    from unittest.mock import patch
+
+    dummy_pdf = tmp_path / "dummy.pdf"
+    dummy_pdf.write_bytes(b"")
+
+    with (
+        patch(
+            "fugue.handlers.parsers.pdf.require",
+            side_effect=ImportError("可选依赖 'pypdf' 未安装。请运行: pip install 'fugue[pdf]'"),
+        ),
+        pytest.raises(ImportError) as exc_info,
+    ):
+        pdf_parser(dummy_pdf)
+
+    assert "pip install 'fugue[pdf]'" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# 测试 13: pdf.py 模块顶层 namespace 无 pypdf 属性（已移除 eager import）
+# ---------------------------------------------------------------------------
+
+
+def test_pdf_module_no_toplevel_pypdf_import() -> None:
+    import fugue.handlers.parsers.pdf as pdfmod
+
+    assert not hasattr(pdfmod, "pypdf")
