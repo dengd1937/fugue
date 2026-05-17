@@ -12,6 +12,7 @@ from fugue import ProviderConfig
 _DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 _DEFAULT_LLM_MODEL = "openai/gpt-4o-mini"
 _DEFAULT_EMBEDDING_MODEL = "openai/text-embedding-3-small"
+_DEFAULT_RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -37,6 +38,8 @@ def e2e_provider(openai_key: str) -> ProviderConfig:
     - base_url:        FUGUE_E2E_BASE_URL
     - llm_model:       FUGUE_E2E_LLM_MODEL
     - embedding_model: FUGUE_E2E_EMBEDDING_MODEL
+    - reranker_model:  FUGUE_E2E_RERANKER_MODEL（可设为本地快照路径，
+                       避开 HuggingFace 下载，如 modelscope 下载的目录）
     - api_key:         OPENAI_API_KEY（经 openai_key fixture，未设置则 skip）
 
     embedding 复用同一 base_url + api_key（RAG 内部回退逻辑）。
@@ -47,6 +50,7 @@ def e2e_provider(openai_key: str) -> ProviderConfig:
         llm_api_key=openai_key,
         llm_model=os.environ.get("FUGUE_E2E_LLM_MODEL", _DEFAULT_LLM_MODEL),
         embedding_model=os.environ.get("FUGUE_E2E_EMBEDDING_MODEL", _DEFAULT_EMBEDDING_MODEL),
+        reranker_model=os.environ.get("FUGUE_E2E_RERANKER_MODEL", _DEFAULT_RERANKER_MODEL),
     )
 
 
