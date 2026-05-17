@@ -823,7 +823,7 @@ kg = "fugue_kg_plugin.handlers:register"
 
 ## 6. 参考资料
 
-- 原始设计：`fuge_plan.md`（项目根目录）
+- 原始设计：`docs/specs/fuge_plan.md`
 - 竞品资料：
   - [LangChain RAG Agent (LangGraph)](https://docs.langchain.com/oss/python/langgraph/agentic-rag)
   - [LlamaIndex Ingestion Pipeline](https://developers.llamaindex.ai/python/framework/module_guides/loading/ingestion_pipeline/)

@@ -191,4 +191,4 @@ MIT
 ## Links
 
 - 设计规范：[docs/specs/fugue-design.md](docs/specs/fugue-design.md)
-- 开发计划：[fuge_plan.md](fuge_plan.md)
+- 开发计划：[docs/specs/fuge_plan.md](docs/specs/fuge_plan.md)
