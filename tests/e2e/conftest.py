@@ -35,22 +35,22 @@ def openai_key() -> str:
 def e2e_provider(openai_key: str) -> ProviderConfig:
     """共享 ProviderConfig：默认 OpenRouter，可经环境变量覆盖。
 
-    - base_url:        FUGUE_E2E_BASE_URL
-    - llm_model:       FUGUE_E2E_LLM_MODEL
-    - embedding_model: FUGUE_E2E_EMBEDDING_MODEL
-    - reranker_model:  FUGUE_E2E_RERANKER_MODEL（可设为本地快照路径，
+    - base_url:        RAGLINE_E2E_BASE_URL
+    - llm_model:       RAGLINE_E2E_LLM_MODEL
+    - embedding_model: RAGLINE_E2E_EMBEDDING_MODEL
+    - reranker_model:  RAGLINE_E2E_RERANKER_MODEL（可设为本地快照路径，
                        避开 HuggingFace 下载，如 modelscope 下载的目录）
     - api_key:         OPENAI_API_KEY（经 openai_key fixture，未设置则 skip）
 
     embedding 复用同一 base_url + api_key（RAG 内部回退逻辑）。
     """
-    base_url = os.environ.get("FUGUE_E2E_BASE_URL", _DEFAULT_BASE_URL)
+    base_url = os.environ.get("RAGLINE_E2E_BASE_URL", _DEFAULT_BASE_URL)
     return ProviderConfig(
         llm_base_url=base_url,
         llm_api_key=openai_key,
-        llm_model=os.environ.get("FUGUE_E2E_LLM_MODEL", _DEFAULT_LLM_MODEL),
-        embedding_model=os.environ.get("FUGUE_E2E_EMBEDDING_MODEL", _DEFAULT_EMBEDDING_MODEL),
-        reranker_model=os.environ.get("FUGUE_E2E_RERANKER_MODEL", _DEFAULT_RERANKER_MODEL),
+        llm_model=os.environ.get("RAGLINE_E2E_LLM_MODEL", _DEFAULT_LLM_MODEL),
+        embedding_model=os.environ.get("RAGLINE_E2E_EMBEDDING_MODEL", _DEFAULT_EMBEDDING_MODEL),
+        reranker_model=os.environ.get("RAGLINE_E2E_RERANKER_MODEL", _DEFAULT_RERANKER_MODEL),
     )
 
 
