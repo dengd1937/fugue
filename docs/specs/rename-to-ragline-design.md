@@ -80,6 +80,21 @@ P0 功能全量实现：包目录、类标识符、pyproject + uv.lock、entry_p
 - **文档语义失真风险**：docs 切片区分「指代本库」与「叙述历史包名」两类语境，前者机械替换，后者人工改写为「原名 fugue」等表述，不机械替换。
 - **GitHub 仓库改名**：不在代码 diff 内，作为收尾手动步骤记录，不阻塞代码切片实现与合并。
 
+### Implementation Deviations
+
+#### 2026-05-19 — 切片分组与 no-op 收敛
+
+**偏差章节**：Architecture（6 有序切片）
+
+**原方案**：6 个独立切片——(1) 包目录+内部 import、(2) 公开类标识符、(3) pyproject+uv lock、(4) entry_points 组、(5) 环境变量、(6) 文档。
+
+**实际实现**：落地为 5 个实现任务——
+- 原切片 1+3 合并为 T1：`git mv` 后 editable 安装包映射与 `--cov=fugue` 覆盖率门控与目录名强耦合，分开提交则单切片无法通过标准 `uv run pytest` 门控，必须原子化。T1 同时纳入 `.importlinter`/`.pre-commit-config.yaml`/`ci.yml`/`_optional.py` 运行时串/硬编码 logger 等 round-2/3 评审补全的耦合点。
+- 原切片 4（entry_points 组）成为 no-op：`entry_points(group="fugue.handlers")` 是小写 `fugue` token，已被 T1 全量小写 sweep 覆盖，零独立 diff。
+- e2e 语料 fixture（原属文档切片）在公开类切片被 gate-forced 提前：该切片验收 `grep -rn 'Fugue' src tests` 递归 `tests/fixtures`，强制同步处理。
+
+**原因**：writing-plans 阶段对「如何实现」的精化——spec「按可独立验证的语义单元有序切片、每片测试绿」的意图未变，仅切片边界依实际耦合（安装映射/覆盖率门控/grep 门控递归）调整为可真正满足每片绿灯不变量的分组。无架构方向、行为或范围变更。
+
 ## Design Constraints
 
 - 不改任何业务逻辑或行为；不动固定 7 节点拓扑；不借机重构。
