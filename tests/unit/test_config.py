@@ -1,20 +1,20 @@
-"""tests/unit/test_config.py — FugueConfig + YAML loader 单元测试。"""
+"""tests/unit/test_config.py — RaglineConfig + YAML loader 单元测试。"""
 
 import logging
 from pathlib import Path
 
 import pytest
 
-from ragline.api.types import FugueConfigError
+from ragline.api.types import RaglineConfigError
 
 
 # ---------------------------------------------------------------------------
 # 1. 默认实例化
 # ---------------------------------------------------------------------------
 def test_default_instantiation() -> None:
-    from ragline.config import FugueConfig, GraphConfig, IngestConfig
+    from ragline.config import GraphConfig, IngestConfig, RaglineConfig
 
-    cfg = FugueConfig()
+    cfg = RaglineConfig()
     assert cfg.graph is not None
     assert cfg.ingest is not None
     assert cfg.providers is not None
@@ -28,9 +28,9 @@ def test_default_instantiation() -> None:
 # 2. YAML 往返
 # ---------------------------------------------------------------------------
 def test_yaml_roundtrip(tmp_path: Path) -> None:
-    from ragline.config import FugueConfig, GraphConfig, IngestConfig, ProviderConfig, dump_yaml, load_yaml
+    from ragline.config import GraphConfig, IngestConfig, ProviderConfig, RaglineConfig, dump_yaml, load_yaml
 
-    custom = FugueConfig(
+    custom = RaglineConfig(
         graph=GraphConfig(top_k=5, temperature=0.3),
         ingest=IngestConfig(chunk_size=256, collection_name="my_col"),
         providers=ProviderConfig(llm_model="gpt-4o"),
@@ -117,7 +117,7 @@ graph:
     yaml_file = tmp_path / "config.yaml"
     yaml_file.write_text(content, encoding="utf-8")
 
-    with pytest.raises(FugueConfigError) as exc_info:
+    with pytest.raises(RaglineConfigError) as exc_info:
         load_yaml(yaml_file)
 
     assert "unknown_field" in str(exc_info.value)
@@ -136,7 +136,7 @@ graph:
     yaml_file = tmp_path / "config.yaml"
     yaml_file.write_text(content, encoding="utf-8")
 
-    with pytest.raises(FugueConfigError) as exc_info:
+    with pytest.raises(RaglineConfigError) as exc_info:
         load_yaml(yaml_file)
 
     assert "n_rewrites" in str(exc_info.value)
@@ -156,7 +156,7 @@ graph:
     yaml_file = tmp_path / "config_low.yaml"
     yaml_file.write_text(content_low, encoding="utf-8")
 
-    with pytest.raises(FugueConfigError) as exc_info:
+    with pytest.raises(RaglineConfigError) as exc_info:
         load_yaml(yaml_file)
     assert "n_rewrites" in str(exc_info.value)
 
@@ -168,7 +168,7 @@ graph:
     yaml_file2 = tmp_path / "config_high.yaml"
     yaml_file2.write_text(content_high, encoding="utf-8")
 
-    with pytest.raises(FugueConfigError) as exc_info2:
+    with pytest.raises(RaglineConfigError) as exc_info2:
         load_yaml(yaml_file2)
     assert "n_rewrites" in str(exc_info2.value)
 
@@ -177,13 +177,13 @@ graph:
 # 9. 空 YAML 文件等同默认值
 # ---------------------------------------------------------------------------
 def test_empty_yaml(tmp_path: Path) -> None:
-    from ragline.config import FugueConfig, load_yaml
+    from ragline.config import RaglineConfig, load_yaml
 
     yaml_file = tmp_path / "empty.yaml"
     yaml_file.write_text("", encoding="utf-8")
 
     cfg = load_yaml(yaml_file)
-    default = FugueConfig()
+    default = RaglineConfig()
 
     assert cfg.graph.top_k == default.graph.top_k
     assert cfg.ingest.chunker == default.ingest.chunker
@@ -204,7 +204,7 @@ graph:
     yaml_file = tmp_path / "bad.yaml"
     yaml_file.write_text(content, encoding="utf-8")
 
-    with pytest.raises(FugueConfigError) as exc_info:
+    with pytest.raises(RaglineConfigError) as exc_info:
         load_yaml(yaml_file)
 
     assert "Invalid YAML" in str(exc_info.value)
@@ -216,7 +216,7 @@ graph:
 def test_load_yaml_nonexistent_file() -> None:
     from ragline.config import load_yaml
 
-    with pytest.raises(FugueConfigError) as exc_info:
+    with pytest.raises(RaglineConfigError) as exc_info:
         load_yaml("/nonexistent/path/config.yaml")
 
     assert "Failed to read" in str(exc_info.value)
@@ -232,7 +232,7 @@ def test_top_level_not_dict(tmp_path: Path) -> None:
     yaml_file = tmp_path / "list.yaml"
     yaml_file.write_text(content, encoding="utf-8")
 
-    with pytest.raises(FugueConfigError) as exc_info:
+    with pytest.raises(RaglineConfigError) as exc_info:
         load_yaml(yaml_file)
 
     assert "mapping" in str(exc_info.value).lower() or "list" in str(exc_info.value).lower()

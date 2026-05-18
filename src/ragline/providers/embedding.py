@@ -5,7 +5,7 @@ from types import TracebackType
 
 from openai import OpenAI
 
-from ragline.api.types import FugueEmbeddingError
+from ragline.api.types import RaglineEmbeddingError
 
 
 class EmbeddingClient:
@@ -51,7 +51,7 @@ class EmbeddingClient:
             return self._embed_raw(batch)
         except Exception as first_exc:
             if len(batch) <= 1:
-                raise FugueEmbeddingError(f"Embedding failed for single text: {first_exc}") from first_exc
+                raise RaglineEmbeddingError(f"Embedding failed for single text: {first_exc}") from first_exc
             mid = len(batch) // 2
             left, right = batch[:mid], batch[mid:]
             try:
@@ -59,7 +59,7 @@ class EmbeddingClient:
                 right_result = self._embed_raw(right)
                 return left_result + right_result
             except Exception as second_exc:
-                raise FugueEmbeddingError(f"Embedding failed after split retry: {second_exc}") from second_exc
+                raise RaglineEmbeddingError(f"Embedding failed after split retry: {second_exc}") from second_exc
 
     def _embed_raw(self, batch: list[str]) -> list[list[float]]:
         """实际 API 调用，受 Semaphore 限流。"""

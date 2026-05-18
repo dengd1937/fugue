@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from ragline import RAG, FugueConfig, GraphConfig, IngestConfig, ProviderConfig
+from ragline import RAG, GraphConfig, IngestConfig, ProviderConfig, RaglineConfig
 
 
 def test_e2e_basic_ingest_and_query(
@@ -14,7 +14,7 @@ def test_e2e_basic_ingest_and_query(
     tmp_path: Path,
 ) -> None:
     """完整 e2e：ingest 3 markdown → query → 验证 answer 含 fixtures 关键词。"""
-    cfg = FugueConfig(
+    cfg = RaglineConfig(
         graph=GraphConfig(
             transforms=["rewrite"],
             n_rewrites=1,

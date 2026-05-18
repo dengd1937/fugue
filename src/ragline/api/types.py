@@ -1,4 +1,4 @@
-"""src/ragline/api/types.py — Fugue 公开类型与异常定义。"""
+"""src/ragline/api/types.py — Ragline 公开类型与异常定义。"""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -53,20 +53,20 @@ class IngestResult:
 
 
 # 异常体系
-class FugueError(Exception):
-    """Fugue 异常基类。"""
+class RaglineError(Exception):
+    """Ragline 异常基类。"""
 
 
-class FugueConfigError(FugueError): ...
+class RaglineConfigError(RaglineError): ...
 
 
-class FugueRegistryError(FugueError): ...
+class RaglineRegistryError(RaglineError): ...
 
 
-class FugueLLMError(FugueError): ...
+class RaglineLLMError(RaglineError): ...
 
 
-class FugueEmbeddingError(FugueError): ...
+class RaglineEmbeddingError(RaglineError): ...
 
 
-class FugueRetrieverError(FugueError): ...
+class RaglineRetrieverError(RaglineError): ...

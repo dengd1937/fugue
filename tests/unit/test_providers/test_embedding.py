@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from ragline.api.types import FugueEmbeddingError
+from ragline.api.types import RaglineEmbeddingError
 
 
 def make_embedding_response(embeddings: list[list[float]]) -> MagicMock:
@@ -124,7 +124,7 @@ class TestEmbeddingClientRetry:
 
 
 class TestEmbeddingClientDoubleFailure:
-    """测试 4: 二次失败 → 抛 FugueEmbeddingError。"""
+    """测试 4: 二次失败 → 抛 RaglineEmbeddingError。"""
 
     def test_raises_ragline_embedding_error_after_split_retry(self, mock_openai):
         from ragline.providers.embedding import EmbeddingClient
@@ -138,7 +138,7 @@ class TestEmbeddingClientDoubleFailure:
             model="m",
             batch_size=4,
         )
-        with pytest.raises(FugueEmbeddingError, match="Embedding failed after split retry"):
+        with pytest.raises(RaglineEmbeddingError, match="Embedding failed after split retry"):
             client.embed(["t0", "t1", "t2", "t3"])
 
         # 1 整批 + 1 左半（失败即停，因为 second_exc 包装了所有）
@@ -179,7 +179,7 @@ class TestEmbeddingClientSingleText:
             model="m",
             batch_size=1,
         )
-        with pytest.raises(FugueEmbeddingError, match="single text"):
+        with pytest.raises(RaglineEmbeddingError, match="single text"):
             client.embed(["only_one"])
 
 

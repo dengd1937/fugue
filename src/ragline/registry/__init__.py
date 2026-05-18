@@ -5,7 +5,7 @@ from collections.abc import Callable
 from importlib.metadata import entry_points
 from typing import Any
 
-from ragline.api.types import FugueRegistryError
+from ragline.api.types import RaglineRegistryError
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class Registry[H: Callable[..., Any]]:
     def get(self, name: str) -> H:
         if name not in self._items:
             available = sorted(self._items.keys())
-            raise FugueRegistryError(f"Handler '{name}' not registered in {self._name}. Available: {available}")
+            raise RaglineRegistryError(f"Handler '{name}' not registered in {self._name}. Available: {available}")
         return self._items[name]
 
     def has(self, name: str) -> bool:

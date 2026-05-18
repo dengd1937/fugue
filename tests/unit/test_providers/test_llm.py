@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ragline.api.types import FugueLLMError
+from ragline.api.types import RaglineLLMError
 from ragline.providers.llm import LLMClient
 
 # ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ def test_complete_basic_call() -> None:
 
 
 def test_complete_wraps_exception_as_llm_error() -> None:
-    """chat.completions.create 抛异常时，complete() 包装为 FugueLLMError。"""
+    """chat.completions.create 抛异常时，complete() 包装为 RaglineLLMError。"""
     with patch("ragline.providers.llm.OpenAI") as mock_openai_cls:
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
@@ -52,13 +52,13 @@ def test_complete_wraps_exception_as_llm_error() -> None:
 
         llm = LLMClient(base_url="http://localhost", api_key="test-key", model="test-model")
 
-        with pytest.raises(FugueLLMError, match="LLM call failed"):
+        with pytest.raises(RaglineLLMError, match="LLM call failed"):
             llm.complete("x")
 
         # 验证原始异常通过 __cause__ 链可访问
         try:
             llm.complete("x")
-        except FugueLLMError as exc:
+        except RaglineLLMError as exc:
             assert exc.__cause__ is original_exc
 
 

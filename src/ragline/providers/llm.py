@@ -4,7 +4,7 @@ import threading
 
 from openai import OpenAI
 
-from ragline.api.types import FugueLLMError
+from ragline.api.types import RaglineLLMError
 
 
 class LLMClient:
@@ -34,7 +34,7 @@ class LLMClient:
         self._sem = threading.Semaphore(max_concurrent)
 
     def complete(self, prompt: str, *, temperature: float = 0.7) -> str:
-        """同步调用 chat.completions.create；失败抛 FugueLLMError。"""
+        """同步调用 chat.completions.create；失败抛 RaglineLLMError。"""
         with self._sem:
             try:
                 resp = self._client.chat.completions.create(
@@ -44,7 +44,7 @@ class LLMClient:
                 )
                 return resp.choices[0].message.content or ""
             except Exception as e:
-                raise FugueLLMError(f"LLM call failed: {e}") from e
+                raise RaglineLLMError(f"LLM call failed: {e}") from e
 
     def close(self) -> None:
         """关闭底层 httpx client。"""

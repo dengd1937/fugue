@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ragline.api.rag import RAG
-from ragline.config import FugueConfig, GraphConfig, IngestConfig, ProviderConfig
+from ragline.config import GraphConfig, IngestConfig, ProviderConfig, RaglineConfig
 from ragline.server.endpoints import create_endpoints
 
 
@@ -19,7 +19,7 @@ def test_e2e_server_endpoints(
     tmp_path: Path,
 ) -> None:
     """端到端：构建 FastAPI app → ingest + query + health 三 endpoint。"""
-    cfg = FugueConfig(
+    cfg = RaglineConfig(
         graph=GraphConfig(
             transforms=[],
             retrievers=["vector"],
@@ -36,7 +36,7 @@ def test_e2e_server_endpoints(
         providers=e2e_provider,
     )
     with RAG(cfg) as rag:
-        app = FastAPI(title="Fugue E2E")
+        app = FastAPI(title="Ragline E2E")
         create_endpoints(app, rag)
         client = TestClient(app)
 

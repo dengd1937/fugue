@@ -1,4 +1,4 @@
-"""src/ragline/config/__init__.py — Fugue 配置定义、Pydantic 校验与 YAML 加载。"""
+"""src/ragline/config/__init__.py — Ragline 配置定义、Pydantic 校验与 YAML 加载。"""
 
 from __future__ import annotations
 
@@ -12,14 +12,14 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from ragline.api.types import FugueConfigError
+from ragline.api.types import RaglineConfigError
 
 logger = logging.getLogger(__name__)
 
 _ENV_VAR_PATTERN = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)\}")
 
 __all__ = [
-    "FugueConfig",
+    "RaglineConfig",
     "GraphConfig",
     "IngestConfig",
     "ProviderConfig",
@@ -87,7 +87,7 @@ class ProviderConfig:
 
 
 @dataclass
-class FugueConfig:
+class RaglineConfig:
     graph: GraphConfig = field(default_factory=GraphConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
     providers: ProviderConfig = field(default_factory=ProviderConfig)
@@ -164,15 +164,15 @@ class ProviderConfigSchema(BaseModel):
         return ProviderConfig(**self.model_dump())
 
 
-class FugueConfigSchema(BaseModel):
+class RaglineConfigSchema(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     graph: GraphConfigSchema = Field(default_factory=GraphConfigSchema)
     ingest: IngestConfigSchema = Field(default_factory=IngestConfigSchema)
     providers: ProviderConfigSchema = Field(default_factory=ProviderConfigSchema)
 
-    def to_dataclass(self) -> FugueConfig:
-        return FugueConfig(
+    def to_dataclass(self) -> RaglineConfig:
+        return RaglineConfig(
             graph=self.graph.to_dataclass(),
             ingest=self.ingest.to_dataclass(),
             providers=self.providers.to_dataclass(),
@@ -197,44 +197,44 @@ def expand_env_vars(text: str) -> str:
     return _ENV_VAR_PATTERN.sub(replace, text)
 
 
-def load_yaml(path: str | Path) -> FugueConfig:
+def load_yaml(path: str | Path) -> RaglineConfig:
     """读 YAML → ${env_var} 展开 → Pydantic 校验 → dataclass。
 
-    失败抛 FugueConfigError，消息含字段路径与原因。
+    失败抛 RaglineConfigError，消息含字段路径与原因。
     """
     p = Path(path)
     try:
         raw_text = p.read_text(encoding="utf-8")
     except OSError as e:
-        raise FugueConfigError(f"Failed to read config file '{p}': {e}") from e
+        raise RaglineConfigError(f"Failed to read config file '{p}': {e}") from e
 
     expanded = expand_env_vars(raw_text)
 
     try:
         raw_data: Any = yaml.safe_load(expanded)
     except yaml.YAMLError as e:
-        raise FugueConfigError(f"Invalid YAML syntax in '{p}': {e}") from e
+        raise RaglineConfigError(f"Invalid YAML syntax in '{p}': {e}") from e
 
     if raw_data is None:
         raw_data = {}
 
     if not isinstance(raw_data, dict):
-        raise FugueConfigError(f"Config file '{p}' must contain a top-level mapping, got {type(raw_data).__name__}")
+        raise RaglineConfigError(f"Config file '{p}' must contain a top-level mapping, got {type(raw_data).__name__}")
 
     try:
-        schema = FugueConfigSchema.model_validate(raw_data)
+        schema = RaglineConfigSchema.model_validate(raw_data)
     except ValidationError as e:
         errors = []
         for err in e.errors():
             loc = ".".join(str(x) for x in err["loc"])
             errors.append(f"  - {loc}: {err['msg']}")
-        raise FugueConfigError(f"Config validation failed for '{p}':\n" + "\n".join(errors)) from e
+        raise RaglineConfigError(f"Config validation failed for '{p}':\n" + "\n".join(errors)) from e
 
     return schema.to_dataclass()
 
 
-def dump_yaml(config: FugueConfig, path: str | Path) -> None:
-    """将 FugueConfig 序列化为 YAML（用于配置导出/快照）。"""
+def dump_yaml(config: RaglineConfig, path: str | Path) -> None:
+    """将 RaglineConfig 序列化为 YAML（用于配置导出/快照）。"""
     data = asdict(config)
     p = Path(path)
     p.write_text(yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8")

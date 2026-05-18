@@ -8,14 +8,14 @@ import pytest
 from ragline.api.types import (
     Chunk,
     Document,
-    FugueConfigError,
-    FugueEmbeddingError,
-    FugueError,
-    FugueLLMError,
-    FugueRegistryError,
-    FugueRetrieverError,
     ParsedDocument,
     QueryResult,
+    RaglineConfigError,
+    RaglineEmbeddingError,
+    RaglineError,
+    RaglineLLMError,
+    RaglineRegistryError,
+    RaglineRetrieverError,
     TransformResult,
 )
 
@@ -49,16 +49,16 @@ def test_query_result_is_frozen() -> None:
 
 # 测试 3：异常继承关系
 def test_exception_inheritance() -> None:
-    assert issubclass(FugueLLMError, FugueError)
-    assert issubclass(FugueConfigError, FugueError)
-    assert issubclass(FugueRegistryError, FugueError)
-    assert issubclass(FugueEmbeddingError, FugueError)
-    assert issubclass(FugueRetrieverError, FugueError)
+    assert issubclass(RaglineLLMError, RaglineError)
+    assert issubclass(RaglineConfigError, RaglineError)
+    assert issubclass(RaglineRegistryError, RaglineError)
+    assert issubclass(RaglineEmbeddingError, RaglineError)
+    assert issubclass(RaglineRetrieverError, RaglineError)
 
 
 # 测试 4：异常可携带 message
 def test_exception_message() -> None:
-    e = FugueRegistryError("kg not found")
+    e = RaglineRegistryError("kg not found")
     assert str(e) == "kg not found"
 
 
@@ -81,6 +81,6 @@ def test_parsed_document_is_frozen() -> None:
         doc.content = "z"  # type: ignore[misc]
 
 
-# 测试 8：FugueError 是 Exception 子类
+# 测试 8：RaglineError 是 Exception 子类
 def test_ragline_error_is_exception() -> None:
-    assert issubclass(FugueError, Exception)
+    assert issubclass(RaglineError, Exception)

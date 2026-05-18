@@ -1,4 +1,4 @@
-"""src/ragline/server/endpoints.py — Fugue HTTP API endpoints。"""
+"""src/ragline/server/endpoints.py — Ragline HTTP API endpoints。"""
 
 import logging
 from typing import Any

@@ -1,4 +1,4 @@
-"""src/ragline/server/cli.py — Fugue CLI entry point。"""
+"""src/ragline/server/cli.py — Ragline CLI entry point。"""
 
 import argparse
 import logging
@@ -15,7 +15,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ragline")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    serve = sub.add_parser("serve", help="Start Fugue REST server")
+    serve = sub.add_parser("serve", help="Start Ragline REST server")
     serve.add_argument("--config", required=True, help="Path to YAML config")
     serve.add_argument("--host", default="127.0.0.1", help="Bind host")
     serve.add_argument("--port", type=int, default=8000, help="Bind port")
@@ -37,6 +37,6 @@ def main(argv: list[str] | None = None) -> None:
     if args.cmd == "serve":
         app = create_app(args.config)
         logger.warning(
-            "⚠️ Fugue 0.x: no authentication, single-worker only. Deploy to trusted networks only. workers=1 enforced."
+            "⚠️ Ragline 0.x: no authentication, single-worker only. Deploy to trusted networks only. workers=1 enforced."
         )
         uvicorn.run(app, host=args.host, port=args.port, workers=1)

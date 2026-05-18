@@ -1,4 +1,4 @@
-"""src/ragline/api/rag.py — Fugue 主入口 class。"""
+"""src/ragline/api/rag.py — Ragline 主入口 class。"""
 
 import logging
 import os
@@ -9,11 +9,11 @@ from typing import Any
 
 from ragline.api.ingest import IngestPipeline
 from ragline.api.types import (
-    FugueConfigError,
     IngestResult,
     QueryResult,
+    RaglineConfigError,
 )
-from ragline.config import FugueConfig, GraphConfig, load_yaml
+from ragline.config import GraphConfig, RaglineConfig, load_yaml
 from ragline.engine.graph import build_rag_graph  # allowed via .importlinter ignore_imports
 from ragline.handlers.chunkers import register_chunkers
 from ragline.handlers.generators import register_generators
@@ -97,7 +97,7 @@ def _load_dotenv(env_file: Path) -> None:
 
 
 class RAG(AbstractContextManager["RAG"]):
-    """Fugue 主入口。
+    """Ragline 主入口。
 
     .. warning::
         **MVP 0.x 限制**：Registry 是全局单例，**同一进程内只支持一个 RAG 实例**。
@@ -112,7 +112,7 @@ class RAG(AbstractContextManager["RAG"]):
 
     def __init__(
         self,
-        config: FugueConfig | None = None,
+        config: RaglineConfig | None = None,
         *,
         collection_name: str | None = None,
         env_file: str | Path | None = None,
@@ -122,7 +122,7 @@ class RAG(AbstractContextManager["RAG"]):
         _load_dotenv(env_path)
 
         # 2. config 默认 + collection 覆盖
-        cfg = config if config is not None else FugueConfig()
+        cfg = config if config is not None else RaglineConfig()
         if collection_name:
             # IngestConfig 是 dataclass(frozen=False)，直接赋值
             cfg.ingest.collection_name = collection_name
@@ -201,7 +201,7 @@ class RAG(AbstractContextManager["RAG"]):
         env_file: str | Path | None = None,
         **overrides: Any,
     ) -> "RAG":
-        """从 YAML 文件加载 FugueConfig 后实例化 RAG。
+        """从 YAML 文件加载 RaglineConfig 后实例化 RAG。
 
         overrides 用 dot path 覆盖任意层级（例如 graph__n_rewrites=5；
         因为 Python kwargs 不允许 dot，用双下划线代替）。
@@ -210,12 +210,12 @@ class RAG(AbstractContextManager["RAG"]):
         for key, value in overrides.items():
             section, _, field = key.partition("__")
             if not field:
-                raise FugueConfigError(f"overrides key '{key}' must use dot path like 'graph__n_rewrites'")
+                raise RaglineConfigError(f"overrides key '{key}' must use dot path like 'graph__n_rewrites'")
             target = getattr(cfg, section, None)
             if target is None:
-                raise FugueConfigError(f"unknown config section '{section}'")
+                raise RaglineConfigError(f"unknown config section '{section}'")
             if not hasattr(target, field):
-                raise FugueConfigError(f"unknown field '{field}' in section '{section}'")
+                raise RaglineConfigError(f"unknown field '{field}' in section '{section}'")
             setattr(target, field, value)
         return cls(cfg, collection_name=collection_name, env_file=env_file)
 
@@ -377,7 +377,7 @@ class RAG(AbstractContextManager["RAG"]):
                 )
 
         if errors:
-            raise FugueConfigError("Config validation failed:\n" + "\n".join(f"  - {e}" for e in errors))
+            raise RaglineConfigError("Config validation failed:\n" + "\n".join(f"  - {e}" for e in errors))
 
     def _bootstrap_bm25(self) -> None:
         """若 retrievers 含 'bm25'，从 vector_store 分批拉取已 ingest 的 chunks

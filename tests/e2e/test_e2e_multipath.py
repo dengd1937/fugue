@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from ragline import RAG, FugueConfig, GraphConfig, IngestConfig, ProviderConfig
+from ragline import RAG, GraphConfig, IngestConfig, ProviderConfig, RaglineConfig
 
 
 def test_e2e_multipath_with_citation(
@@ -14,7 +14,7 @@ def test_e2e_multipath_with_citation(
     tmp_path: Path,
 ) -> None:
     """transforms + 多路 retriever + rrf + rerank + citation mode 端到端。"""
-    cfg = FugueConfig(
+    cfg = RaglineConfig(
         graph=GraphConfig(
             transforms=["rewrite"],
             n_rewrites=2,
@@ -56,7 +56,7 @@ def test_e2e_chinese_query_basic(
     tmp_path: Path,
 ) -> None:
     """中文场景：BM25 召回为 0 是已知限制，但向量路径应仍能工作。"""
-    cfg = FugueConfig(
+    cfg = RaglineConfig(
         graph=GraphConfig(
             transforms=[],  # 不改写，纯检索
             retrievers=["vector"],  # 只用向量避开 BM25 中文问题

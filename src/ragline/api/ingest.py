@@ -9,7 +9,7 @@ from pathlib import Path
 import ragline.handlers.chunkers  # noqa: F401  — 触发 chunker_registry 注册副作用
 import ragline.handlers.parsers  # noqa: F401  — 触发 parser_registry 注册副作用
 from ragline.api.types import IngestResult, ParsedDocument
-from ragline.config import FugueConfig
+from ragline.config import RaglineConfig
 from ragline.providers.bm25 import BM25Provider
 from ragline.providers.embedding import EmbeddingClient
 from ragline.providers.vector_store.base import VectorStore
@@ -26,7 +26,7 @@ class IngestPipeline:
 
     def __init__(
         self,
-        config: FugueConfig,
+        config: RaglineConfig,
         embedding_client: EmbeddingClient,
         vector_store: VectorStore,
         bm25_provider: BM25Provider,

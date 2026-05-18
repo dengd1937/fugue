@@ -6,5 +6,5 @@ They enable semantic retrieval in RAG systems by indexing documents as numerical
 Popular vector databases include Chroma, Qdrant, Weaviate, and Pinecone. Each offers
 different trade-offs between performance, scalability, and ease of deployment.
 
-In Fugue, Chroma is the default vector store, accessed via PersistentClient for
+In Ragline, Chroma is the default vector store, accessed via PersistentClient for
 local file-based persistence.

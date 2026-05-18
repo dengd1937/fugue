@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ragline.api.types import FugueRegistryError
+from ragline.api.types import RaglineRegistryError
 from ragline.registry import (
     Registry,
     chunker_registry,
@@ -46,13 +46,13 @@ def test_decorator_sugar() -> None:
     assert decorated(5) == 6
 
 
-# 测试 3：get 不存在的 handler 抛 FugueRegistryError
+# 测试 3：get 不存在的 handler 抛 RaglineRegistryError
 def test_get_nonexistent_raises() -> None:
     reg: Registry = Registry("test_get")
     reg.register("alpha", lambda: None)
     reg.register("beta", lambda: None)
 
-    with pytest.raises(FugueRegistryError) as exc_info:
+    with pytest.raises(RaglineRegistryError) as exc_info:
         reg.get("gamma")
 
     msg = str(exc_info.value)

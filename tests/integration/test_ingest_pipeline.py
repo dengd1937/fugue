@@ -8,7 +8,7 @@ import pypdf
 import pytest
 
 from ragline.api.ingest import IngestPipeline
-from ragline.config import FugueConfig, GraphConfig, IngestConfig
+from ragline.config import GraphConfig, IngestConfig, RaglineConfig
 from ragline.providers.bm25 import BM25Provider
 from ragline.providers.vector_store.chroma import ChromaVectorStore
 
@@ -50,8 +50,8 @@ def real_bm25():
     return BM25Provider()
 
 
-def _config(*, retrievers: list[str] | None = None, **ingest_overrides: Any) -> FugueConfig:
-    return FugueConfig(
+def _config(*, retrievers: list[str] | None = None, **ingest_overrides: Any) -> RaglineConfig:
+    return RaglineConfig(
         graph=GraphConfig(retrievers=retrievers or ["vector"]),
         ingest=IngestConfig(
             chunk_size=200,
