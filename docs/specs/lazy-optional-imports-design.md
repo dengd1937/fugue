@@ -8,41 +8,41 @@ routing: Development Workflow
 
 ## 1. 问题陈述
 
-Fugue 的导入副作用注册链在模块顶层 eager import 可选依赖，导致
+Ragline 的导入副作用注册链在模块顶层 eager import 可选依赖，导致
 README 承诺的"最小 / 分级 `pip install`"实际不可用。
 
 崩溃链路（实测）：
 
-- **PDF**：`import fugue` → `api/rag.py` → `api/ingest.py:9` →
+- **PDF**：`import ragline` → `api/rag.py` → `api/ingest.py:9` →
   `handlers/__init__.py:8` → `handlers/parsers/__init__.py:7`
-  `from fugue.handlers.parsers.pdf import pdf_parser` →
+  `from ragline.handlers.parsers.pdf import pdf_parser` →
   `parsers/pdf.py:5` `import pypdf` → `ModuleNotFoundError`（未装 `[pdf]`）
 - **BGE**：`processors/__init__.py:3` → `rerank.py:7`
-  `from fugue.providers.reranker.base import Reranker` →
+  `from ragline.providers.reranker.base import Reranker` →
   触发 `providers/reranker/__init__.py:4`
-  `from fugue.providers.reranker.bge import BGEReranker` →
+  `from ragline.providers.reranker.bge import BGEReranker` →
   `reranker/bge.py:5` `from FlagEmbedding import FlagReranker` →
   `ModuleNotFoundError`（未装 `[bge]`）
 
-净结果：裸装 `pip install fugue` 后 `import fugue` 直接失败，
+净结果：裸装 `pip install ragline` 后 `import ragline` 直接失败，
 与 README 的分级安装承诺不符。
 
 ## 2. 目标与范围
 
 **目标**：未安装 `[pdf]` / `[bge]` 时：
 
-- `import fugue` 成功
+- `import ragline` 成功
 - `register_parsers()` / `register_processors()` 注册成功（handler 可注册）
 - 仅当**真正调用** PDF 解析或构造 BGE reranker 时，抛出清晰可操作的
-  `ImportError`，提示 `pip install 'fugue[xxx]'`
+  `ImportError`，提示 `pip install 'ragline[xxx]'`
 
 **范围**：仅 `pdf`（pypdf）+ `bge`（FlagEmbedding）两个可选依赖点。
 
 **明确不做**：
 
 - `chromadb`（实为强制依赖，归属独立的"问题 3"，本次不动）
-- `server` 的 fastapi/uvicorn（仅 `fugue serve` 时加载，本就不在
-  `import fugue` 链中，无需改）
+- `server` 的 fastapi/uvicorn（仅 `ragline serve` 时加载，本就不在
+  `import ragline` 链中，无需改）
 - PyPI 包名冲突（独立的"问题 1"，需单独的产品决策）
 
 ## 3. 技术设计（方案 A，L1 轻量）
@@ -63,7 +63,7 @@ README 承诺的"最小 / 分级 `pip install`"实际不可用。
 
 ### 3.2 共享 helper
 
-新增 `src/fugue/_optional.py`：
+新增 `src/ragline/_optional.py`：
 
 ```python
 def require(module_name: str, *, extra: str) -> Any:
@@ -77,16 +77,16 @@ def require(module_name: str, *, extra: str) -> Any:
 
 - 成功：返回已导入模块对象（静态类型 `Any`）
 - 失败（`ModuleNotFoundError` / `ImportError`）：重抛
-  `ImportError`，消息含模块名 + `pip install 'fugue[<extra>]'`，
+  `ImportError`，消息含模块名 + `pip install 'ragline[<extra>]'`，
   并 `from e` 保留原始 traceback
 
 ### 3.3 改动点
 
 | 文件 | 改动 |
 |---|---|
-| `src/fugue/_optional.py` | **新增** `require()` helper |
-| `src/fugue/handlers/parsers/pdf.py` | 删顶层 `import pypdf`；`pdf_parser()` 首行 `pypdf = require("pypdf", extra="pdf")` |
-| `src/fugue/providers/reranker/bge.py` | 删顶层 `from FlagEmbedding import FlagReranker`；`BGEReranker.__init__()` 内 `FlagReranker = getattr(require("FlagEmbedding", extra="bge"), "FlagReranker")` |
+| `src/ragline/_optional.py` | **新增** `require()` helper |
+| `src/ragline/handlers/parsers/pdf.py` | 删顶层 `import pypdf`；`pdf_parser()` 首行 `pypdf = require("pypdf", extra="pdf")` |
+| `src/ragline/providers/reranker/bge.py` | 删顶层 `from FlagEmbedding import FlagReranker`；`BGEReranker.__init__()` 内 `FlagReranker = getattr(require("FlagEmbedding", extra="bge"), "FlagReranker")` |
 
 `bge.py:13` 既有的 `import torch`（函数内懒加载）保持不变，作为同类先例。
 
@@ -96,7 +96,7 @@ def require(module_name: str, *, extra: str) -> Any:
 - 招错时机：首次调用（`pdf_parser()` 调用时 / `BGEReranker()` 构造时，
   后者经 `_LazyReranker` 即首次 `rerank()`）
 - 消息示例：
-  `PDF 解析需要可选依赖 'pypdf'。请运行: pip install 'fugue[pdf]'`
+  `PDF 解析需要可选依赖 'pypdf'。请运行: pip install 'ragline[pdf]'`
 
 ### Implementation Deviations
 
@@ -118,7 +118,7 @@ def require(module_name: str, *, extra: str) -> Any:
 - **跨模块回归** `tests/integration/test_optional_deps.py`：用
   **子进程隔离**（`subprocess.run([sys.executable,"-c",...])`，脚本内
   `sys.modules["pypdf"]=None`、`sys.modules["FlagEmbedding"]=None` 后
-  `import fugue`），断言子进程 returncode==0；父进程零 sys.modules 操作，
+  `import ragline`），断言子进程 returncode==0；父进程零 sys.modules 操作，
   杜绝进程内 reload 对已收集测试的污染
 
 不依赖真实卸载 pypdf/FlagEmbedding（本地/CI 装了 `[all]`），
@@ -126,9 +126,9 @@ def require(module_name: str, *, extra: str) -> Any:
 
 ## 5. 验收标准
 
-- [ ] 隔离环境裸装 wheel（无 `[pdf]`/`[bge]`）后 `import fugue` 成功
+- [ ] 隔离环境裸装 wheel（无 `[pdf]`/`[bge]`）后 `import ragline` 成功
 - [ ] 该环境 `register_parsers()` / `register_processors()` 成功
-- [ ] 该环境调用 PDF 解析 / 构造 BGE 抛含 `pip install 'fugue[...]'` 的 ImportError
+- [ ] 该环境调用 PDF 解析 / 构造 BGE 抛含 `pip install 'ragline[...]'` 的 ImportError
 - [ ] 装 `[pdf]`/`[bge]` 后行为与改动前完全一致（无回归）
 - [ ] 新回归测试通过；既有测试套件全绿
 - [ ] mypy src 零错误

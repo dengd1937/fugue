@@ -1,10 +1,10 @@
 ---
-feature: fugue
-spec: docs/specs/fugue-design.md
+feature: ragline
+spec: docs/specs/ragline-design.md
 routing: Development Workflow
 ---
 
-# Fugue — 配置驱动的通用 Python RAG 库
+# Ragline — 配置驱动的通用 Python RAG 库
 
 > **核心理念**：图拓扑不变，行为全靠配置驱动。新需求通过插件接入，永不动图结构。
 
@@ -14,7 +14,7 @@ routing: Development Workflow
 
 ### 1.1 一句话描述
 
-Fugue 是一个 Python RAG 库，让开发者通过修改配置（而非组装代码）快速构建、迭代生产级 RAG 系统，新需求通过 Registry 插件接入。
+Ragline 是一个 Python RAG 库，让开发者通过修改配置（而非组装代码）快速构建、迭代生产级 RAG 系统，新需求通过 Registry 插件接入。
 
 ### 1.2 目标用户
 
@@ -24,16 +24,16 @@ Fugue 是一个 Python RAG 库，让开发者通过修改配置（而非组装�
 
 ### 1.3 产品形态
 
-- **主**：Python SDK，`pip install fugue` → `RAG.from_yaml("config.yaml")` → `rag.ingest()` / `rag.query()`
-- **次（薄壳）**：`fugue serve --config config.yaml` 起 FastAPI REST 服务
-- 配置等价：`config.yaml` ↔ `FugueConfig` dataclass ↔ Pydantic v2 校验模型
+- **主**：Python SDK，`pip install ragline` → `RAG.from_yaml("config.yaml")` → `rag.ingest()` / `rag.query()`
+- **次（薄壳）**：`ragline serve --config config.yaml` 起 FastAPI REST 服务
+- 配置等价：`config.yaml` ↔ `RaglineConfig` dataclass ↔ Pydantic v2 校验模型
 
 ### 1.4 核心场景
 
-1. **首次集成**：`pip install fugue` → 写 10 行 YAML → `ingest()` 索引文档 → `query()` 拿答案
+1. **首次集成**：`pip install ragline` → 写 10 行 YAML → `ingest()` 索引文档 → `query()` 拿答案
 2. **迭代需求**：「加一路 BM25 检索」「换成 citation 生成」「加 reranker」—— 改 YAML 一行，无需改代码
 3. **扩展插件**：自家 SQL/KG/私有 API 检索器 —— 实现一个函数 + `@retriever_registry("my_kg")` 装饰，YAML 激活即可
-4. **服务化**：同一份 YAML 用 `fugue serve` 起 REST，对外提供 `/query` `/ingest` 接口
+4. **服务化**：同一份 YAML 用 `ragline serve` 起 REST，对外提供 `/query` `/ingest` 接口
 
 ### 1.5 核心卖点（差异化）
 
@@ -54,21 +54,21 @@ Fugue 是一个 Python RAG 库，让开发者通过修改配置（而非组装�
 | **Haystack 2.x** | SDK + YAML 导出 | YAML 序列化，但**代码先行导出** | ✅ 需连边 | ✅ | ✅ | 自己实现 | ❌ | 17k+ |
 | **RAGFlow** | 平台 + UI | 后台配置，非 SDK | ✅ | ✅ | ✅ | 引擎内置 | N/A | 30k+ |
 | **Dify** | 平台 + 可视化 workflow | UI 拖拽，**面向非开发者** | ✅ | ✅ | ✅ | workflow 节点 | N/A | 60k+ |
-| **RAGLight** | SDK + serve + Builder | env+Builder，最像 Fugue | hybrid | reformulation | 可选 | ❌ | ❌ | 660 |
+| **RAGLight** | SDK + serve + Builder | env+Builder，最像 Ragline | hybrid | reformulation | 可选 | ❌ | ❌ | 660 |
 
 ### 2.2 市场空白判定
 
-| Fugue 卖点 | 空白现状 |
+| Ragline 卖点 | 空白现状 |
 |---|---|
 | **配置即行为** | 部分被占（Haystack YAML、RAGLight env+Builder），但**都没做到"一份 YAML 完整描述行为"**。空白存在但不大。 |
 | **图拓扑稳定** | **真空白**。所有现有库都是"加功能=改图/写节点"，没有明确承诺"拓扑不变"。最有原创性的点。 |
-| **无限可插拔** | 大家都说支持多 provider，但深度差异大。Fugue 靠 Registry + entry_points 显式化，让第三方包真正零侵入。 |
+| **无限可插拔** | 大家都说支持多 provider，但深度差异大。Ragline 靠 Registry + entry_points 显式化，让第三方包真正零侵入。 |
 
 ### 2.3 必须避开的反模式
 
-| 反模式 | 谁踩过 | Fugue 怎么避 |
+| 反模式 | 谁踩过 | Ragline 怎么避 |
 |---|---|---|
-| 抽象层太多（Settings/ServiceContext/StorageContext 嵌套） | LlamaIndex | 只有 `FugueConfig` 三层 + Registry，扁平 |
+| 抽象层太多（Settings/ServiceContext/StorageContext 嵌套） | LlamaIndex | 只有 `RaglineConfig` 三层 + Registry，扁平 |
 | YAML 仅作序列化导出 | Haystack | YAML 是**主输入**，Python `GraphConfig` 只是等价物 |
 | 集成市场依赖（每 provider 一独立包） | LangChain | OpenAI 兼容协议 cover 大部分，剩下走 Registry 插件 |
 | 平台化诱惑（加 UI/用户/权限） | Dify/RAGFlow | MVP 明确不做 |
@@ -159,9 +159,9 @@ Fugue 是一个 Python RAG 库，让开发者通过修改配置（而非组装�
 | 功能 | 优先级 |
 |---|---|
 | `RAG.ingest(paths)` / `RAG.query(q)` SDK API | P0 |
-| `fugue serve` 最小 REST（`/ingest`, `/query`, `/health`） | P0 |
+| `ragline serve` 最小 REST（`/ingest`, `/query`, `/health`） | P0 |
 | `/collections` endpoint | P1 |
-| `fugue chat` CLI 向导 | P1 |
+| `ragline chat` CLI 向导 | P1 |
 | Streaming（`/stream`、SDK 异步迭代） | P2 |
 | `RAG.dry_run()` 调试方法 | P1 |
 
@@ -197,22 +197,22 @@ Fugue 是一个 Python RAG 库，让开发者通过修改配置（而非组装�
 | D5 | SDK 风格 | **同步主**，async P1 |
 | D6 | Ingest 流水线 | **A. 独立 pipeline，Registry 化** |
 | D7 | Server 框架 | **FastAPI + uvicorn** |
-| D8 | 项目结构 | **单包 `fugue` + extras** (`server`/`bge`/`chroma`/`pdf`) |
+| D8 | 项目结构 | **单包 `ragline` + extras** (`server`/`bge`/`chroma`/`pdf`) |
 
 ### 4.2 Architecture（整体架构）
 
 #### 目录结构
 
 ```
-fugue/
+ragline/
 ├── pyproject.toml              # uv 管理 + extras: server/bge/chroma/pdf
-├── src/fugue/
+├── src/ragline/
 │   ├── __init__.py             # 公开 API re-export
 │   ├── api/                    # ━━ 公开 API 层 ━━
 │   │   ├── rag.py              # RAG class
 │   │   ├── ingest.py           # IngestPipeline class
-│   │   └── types.py            # Document / QueryResult / IngestResult / Fugue*Error
-│   ├── config.py               # FugueConfig + GraphConfig + Pydantic + YAML loader
+│   │   └── types.py            # Document / QueryResult / IngestResult / Ragline*Error
+│   ├── config.py               # RaglineConfig + GraphConfig + Pydantic + YAML loader
 │   ├── registry.py             # Registry 类 + 7 全局单例 + entry_points
 │   ├── engine/                 # ━━ 隐藏 LangGraph 层（用户不可见）━━
 │   │   ├── state.py            # RAGState + merge_docs reducer
@@ -248,8 +248,8 @@ fugue/
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                  用户世界（公开 API）                     │
-│   from fugue import RAG, GraphConfig                    │
-│   from fugue.registry import retriever_registry         │
+│   from ragline import RAG, GraphConfig                    │
+│   from ragline.registry import retriever_registry         │
 │   ★ 用户代码里看不到任何 langgraph 类型 ★               │
 └─────────────────────────────────────────────────────────┘
                           │
@@ -272,7 +272,7 @@ fugue/
 ```
 RAG.query(question)
   └─► api/rag.py
-       ├─► load FugueConfig（含 GraphConfig）
+       ├─► load RaglineConfig（含 GraphConfig）
        └─► engine/graph.invoke({original_query: ...}, config={configurable: cfg})
              │
              ▼
@@ -300,7 +300,7 @@ RAG.ingest(paths)
 #### Registry 与 entry_points
 
 ```python
-# fugue/registry.py
+# ragline/registry.py
 class Registry(Generic[H]):
     def register(self, name: str, fn: H) -> None: ...
     def get(self, name: str) -> H: ...
@@ -316,22 +316,22 @@ parser_registry     = Registry[ParserFn]("parser")
 chunker_registry    = Registry[ChunkerFn]("chunker")
 ```
 
-**第三方插件包发现**：`RAG.__init__` 扫描 `importlib.metadata.entry_points(group="fugue.handlers")`，第三方包写：
+**第三方插件包发现**：`RAG.__init__` 扫描 `importlib.metadata.entry_points(group="ragline.handlers")`，第三方包写：
 
 ```toml
-[project.entry-points."fugue.handlers"]
+[project.entry-points."ragline.handlers"]
 my_kg_retriever = "my_pkg.handlers:register"
 ```
 
-`pip install fugue-kg-plugin` 后用户**无需 import**，YAML 写 `retrievers: ["vector", "kg"]` 即用。
+`pip install ragline-kg-plugin` 后用户**无需 import**，YAML 写 `retrievers: ["vector", "kg"]` 即用。
 
 ### 4.3 Components（核心组件契约）
 
-#### FugueConfig 三层
+#### RaglineConfig 三层
 
 ```python
 @dataclass
-class FugueConfig:
+class RaglineConfig:
     graph:     GraphConfig
     ingest:    IngestConfig
     providers: ProviderConfig
@@ -362,7 +362,7 @@ class IngestConfig:
     chunk_size:      int = 512
     chunk_overlap:   int = 64
     collection_name: str = "default"
-    persist_dir:     str = "./.fugue"
+    persist_dir:     str = "./.ragline"
 
 @dataclass
 class ProviderConfig:
@@ -409,7 +409,7 @@ providers:
 class RAG:
     def __init__(
         self,
-        config: FugueConfig | None = None,
+        config: RaglineConfig | None = None,
         *,
         collection_name: str | None = None,
         env_file: str | Path | None = None,
@@ -596,15 +596,15 @@ IngestResult(num_documents, num_chunks, duration_seconds)
 
 ### 4.5 Error Handling（错误处理与运行时韧性）
 
-#### 异常分类（`fugue/api/types.py`）
+#### 异常分类（`ragline/api/types.py`）
 
 ```python
-class FugueError(Exception): ...
-class FugueConfigError(FugueError): ...
-class FugueRegistryError(FugueError): ...
-class FugueLLMError(FugueError): ...
-class FugueEmbeddingError(FugueError): ...
-class FugueRetrieverError(FugueError): ...   # best-effort，正常不抛
+class RaglineError(Exception): ...
+class RaglineConfigError(RaglineError): ...
+class RaglineRegistryError(RaglineError): ...
+class RaglineLLMError(RaglineError): ...
+class RaglineEmbeddingError(RaglineError): ...
+class RaglineRetrieverError(RaglineError): ...   # best-effort，正常不抛
 ```
 
 #### Failure 边界 8 类决策
@@ -613,19 +613,19 @@ class FugueRetrieverError(FugueError): ...   # best-effort，正常不抛
 |---|---|---|
 | 单个 retriever 抛异常 | 节点内 try/except，返回空 `documents`，记录到 error 元数据 | best-effort：单源失败不拖垮全图 |
 | 所有 retriever 失败 | reducer 合并后 documents=[]，grade insufficient 兜底 → generate 收到空上下文 → LLM 自答"没找到" | 不 fail-fast，给用户回答兜底 |
-| transforms LLM 失败 | OpenAI SDK retry 耗尽后抛 `FugueLLMError` | 不静默兜底（付费调用要让用户感知） |
-| generate LLM 失败 | 抛 `FugueLLMError`，但 `ranked_documents` 已组装好附带错误堆栈 | 帮用户定位是 LLM 还是检索问题 |
-| Embedding 失败（ingest） | 分批重试；最终失败抛 `FugueEmbeddingError`，已写入不回滚 | RAG 数据可重复 ingest，不做事务 |
+| transforms LLM 失败 | OpenAI SDK retry 耗尽后抛 `RaglineLLMError` | 不静默兜底（付费调用要让用户感知） |
+| generate LLM 失败 | 抛 `RaglineLLMError`，但 `ranked_documents` 已组装好附带错误堆栈 | 帮用户定位是 LLM 还是检索问题 |
+| Embedding 失败（ingest） | 分批重试；最终失败抛 `RaglineEmbeddingError`，已写入不回滚 | RAG 数据可重复 ingest，不做事务 |
 | Fallback 链耗尽仍 insufficient | post_process 兜底；空也给 LLM 让其自答 | 一致行为：所有"找不到"都给回答 |
-| YAML 配置错误 | Pydantic `ValidationError` 包装为 `FugueConfigError` 含字段路径 | 启动期发现，不让运行期才崩 |
-| Registry 缺 handler | `KeyError` 包装为 `FugueRegistryError` 含可用列表 | `'kg' not registered. Available: ['vector', 'bm25']` |
+| YAML 配置错误 | Pydantic `ValidationError` 包装为 `RaglineConfigError` 含字段路径 | 启动期发现，不让运行期才崩 |
+| Registry 缺 handler | `KeyError` 包装为 `RaglineRegistryError` 含可用列表 | `'kg' not registered. Available: ['vector', 'bm25']` |
 
 #### 重试策略（分层不叠加）
 
 | 调用类型 | 重试方 | 默认 |
 |---|---|---|
 | LLM | OpenAI SDK 内置（仅 429/500/503/超时） | 2 次 |
-| Embedding | Fugue ingest 层（批量分块二次切分） | 2 次 |
+| Embedding | Ragline ingest 层（批量分块二次切分） | 2 次 |
 | Reranker / Chroma | 不重试 | - |
 
 #### 超时控制
@@ -653,8 +653,8 @@ class FugueRetrieverError(FugueError): ...   # best-effort，正常不抛
 
 #### 可观测性
 
-- **MVP**：Python `logging`，logger name `fugue.<package>.<module>`
-- **P1**：`FugueConfig.on_event` callback，用户接 OpenTelemetry / Langfuse
+- **MVP**：Python `logging`，logger name `ragline.<package>.<module>`
+- **P1**：`RaglineConfig.on_event` callback，用户接 OpenTelemetry / Langfuse
 - **不做**：内置 Prometheus / Datadog 依赖
 
 #### 资源生命周期
@@ -744,7 +744,7 @@ tests/
 
 #### 安全承诺
 
-- `fugue serve` MVP **无鉴权**，文档明确"仅限 localhost 或受信内网部署"
+- `ragline serve` MVP **无鉴权**，文档明确"仅限 localhost 或受信内网部署"
 - P1 加 token-based auth
 
 ### 4.8 端到端使用示例
@@ -768,7 +768,7 @@ providers:
 
 ```python
 # main.py
-from fugue import RAG
+from ragline import RAG
 
 with RAG.from_yaml("config.yaml") as rag:
     rag.ingest(["./docs/*.pdf", "./README.md"])
@@ -781,7 +781,7 @@ with RAG.from_yaml("config.yaml") as rag:
 服务化：
 
 ```bash
-fugue serve --config config.yaml --port 8000
+ragline serve --config config.yaml --port 8000
 # 仅限 localhost / 受信网络
 
 curl -X POST localhost:8000/ingest -d '{"paths": ["./docs"]}'
@@ -791,9 +791,9 @@ curl -X POST localhost:8000/query  -d '{"question": "..."}'
 第三方插件包：
 
 ```python
-# fugue_kg_plugin/handlers.py
-from fugue.registry import retriever_registry
-from fugue.api.types import Document
+# ragline_kg_plugin/handlers.py
+from ragline.registry import retriever_registry
+from ragline.api.types import Document
 
 @retriever_registry("kg")
 def kg_search(query: str, metadata_filter: dict | None = None) -> list[Document]:
@@ -804,12 +804,12 @@ def register() -> None:
 ```
 
 ```toml
-# fugue_kg_plugin/pyproject.toml
-[project.entry-points."fugue.handlers"]
-kg = "fugue_kg_plugin.handlers:register"
+# ragline_kg_plugin/pyproject.toml
+[project.entry-points."ragline.handlers"]
+kg = "ragline_kg_plugin.handlers:register"
 ```
 
-用户 `pip install fugue-kg-plugin` 后，直接在 YAML 写 `retrievers: ["vector", "kg"]` 即用。
+用户 `pip install ragline-kg-plugin` 后，直接在 YAML 写 `retrievers: ["vector", "kg"]` 即用。
 
 ---
 
@@ -817,7 +817,7 @@ kg = "fugue_kg_plugin.handlers:register"
 
 **后续工作流**：**Development Workflow**
 
-**理由**：本 spec 已穷尽产品定义 + 技术设计 + 测试策略。MVP 无新 UI（CLI 仅基础 `fugue serve`），不触发 Design Workflow。下一步是 `writing-plans` skill 将 spec 转为分任务的实现计划（`docs/plans/fugue.md`），然后 `subagent-driven-development` 执行。
+**理由**：本 spec 已穷尽产品定义 + 技术设计 + 测试策略。MVP 无新 UI（CLI 仅基础 `ragline serve`），不触发 Design Workflow。下一步是 `writing-plans` skill 将 spec 转为分任务的实现计划（`docs/plans/ragline.md`），然后 `subagent-driven-development` 执行。
 
 ---
 
