@@ -12,12 +12,12 @@ Fugue 是一个配置驱动的 Python RAG 库，基于 LangGraph 构建。图拓
 # 推荐：安装所有可选组件
 pip install "fugue[all]"
 
-# 最小安装（无 PDF、无本地 reranker、无 server）
+# 最小安装（含 ChromaDB 向量存储；无 PDF、无本地 reranker、无 server）
 pip install fugue
 
 # 按需安装 extras
 pip install "fugue[server]"   # REST API 服务（FastAPI + uvicorn）
-pip install "fugue[chroma]"   # ChromaDB 向量存储
+pip install "fugue[chroma]"   # ChromaDB 向量存储（已随主包默认安装；保留作向后兼容）
 pip install "fugue[bge]"      # 本地 BGE reranker（FlagEmbedding）
 pip install "fugue[pdf]"      # PDF 解析（pypdf）
 ```
