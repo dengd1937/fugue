@@ -844,6 +844,7 @@ name = "fugue"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "chromadb" },
     { name = "langchain-core" },
     { name = "langgraph" },
     { name = "openai" },
@@ -855,7 +856,6 @@ dependencies = [
 
 [package.optional-dependencies]
 all = [
-    { name = "chromadb" },
     { name = "fastapi" },
     { name = "flagembedding" },
     { name = "pypdf" },
@@ -863,9 +863,6 @@ all = [
 ]
 bge = [
     { name = "flagembedding" },
-]
-chroma = [
-    { name = "chromadb" },
 ]
 dev = [
     { name = "import-linter" },
@@ -892,7 +889,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5" },
+    { name = "chromadb", specifier = ">=0.5" },
     { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.111" },
     { name = "flagembedding", marker = "extra == 'bge'", specifier = ">=1.2" },
     { name = "fugue", extras = ["server", "bge", "chroma", "pdf"], marker = "extra == 'all'" },

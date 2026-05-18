@@ -15,6 +15,7 @@ dependencies = [
     "pydantic>=2.6",
     "pyyaml>=6.0",
     "rank-bm25>=0.2.2",
+    "chromadb>=0.5",
     "transformers>=4.44.2,<5",
 ]
 
@@ -36,9 +37,7 @@ server = [
 bge = [
     "FlagEmbedding>=1.2",
 ]
-chroma = [
-    "chromadb>=0.5",
-]
+chroma = []
 pdf = [
     "pypdf>=4.2",
 ]
