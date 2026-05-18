@@ -5,7 +5,7 @@ from pathlib import Path
 import pypdf
 import pytest
 
-from fugue.handlers.parsers import (
+from ragline.handlers.parsers import (
     auto_parser,
     markdown_parser,
     pdf_parser,
@@ -39,7 +39,7 @@ def sample_pdf(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 @pytest.fixture
 def clean_parser_registry():
-    from fugue.registry import parser_registry
+    from ragline.registry import parser_registry
 
     saved = {n: parser_registry.get(n) for n in parser_registry.names()}
     for n in list(parser_registry.names()):
@@ -181,7 +181,7 @@ def test_markdown_parser_empty_file() -> None:
 
 
 def test_register_parsers_registers_all(clean_parser_registry) -> None:
-    from fugue.handlers.parsers import register_parsers
+    from ragline.handlers.parsers import register_parsers
 
     register_parsers()
 
@@ -234,14 +234,14 @@ def test_pdf_parser_missing_pypdf_raises(tmp_path: Path) -> None:
 
     with (
         patch(
-            "fugue.handlers.parsers.pdf.require",
-            side_effect=ImportError("可选依赖 'pypdf' 未安装。请运行: pip install 'fugue[pdf]'"),
+            "ragline.handlers.parsers.pdf.require",
+            side_effect=ImportError("可选依赖 'pypdf' 未安装。请运行: pip install 'ragline[pdf]'"),
         ),
         pytest.raises(ImportError) as exc_info,
     ):
         pdf_parser(dummy_pdf)
 
-    assert "pip install 'fugue[pdf]'" in str(exc_info.value)
+    assert "pip install 'ragline[pdf]'" in str(exc_info.value)
 
 
 # ---------------------------------------------------------------------------
@@ -250,6 +250,6 @@ def test_pdf_parser_missing_pypdf_raises(tmp_path: Path) -> None:
 
 
 def test_pdf_module_no_toplevel_pypdf_import() -> None:
-    import fugue.handlers.parsers.pdf as pdfmod
+    import ragline.handlers.parsers.pdf as pdfmod
 
     assert not hasattr(pdfmod, "pypdf")

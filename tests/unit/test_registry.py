@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from fugue.api.types import FugueRegistryError
-from fugue.registry import (
+from ragline.api.types import FugueRegistryError
+from ragline.registry import (
     Registry,
     chunker_registry,
     discover_plugins,
@@ -96,7 +96,7 @@ def test_register_overwrite_warns(caplog: pytest.LogCaptureFixture) -> None:
 
     reg.register("handler", fn_v1)
 
-    with caplog.at_level(logging.WARNING, logger="fugue.registry"):
+    with caplog.at_level(logging.WARNING, logger="ragline.registry"):
         reg.register("handler", fn_v2)
 
     # 覆盖成功
@@ -125,8 +125,8 @@ def test_discover_plugins(caplog: pytest.LogCaptureFixture) -> None:
     ep3.load.return_value = register_fn3
 
     with (
-        patch("fugue.registry.entry_points", return_value=[ep1, ep2, ep3]),
-        caplog.at_level(logging.WARNING, logger="fugue.registry"),
+        patch("ragline.registry.entry_points", return_value=[ep1, ep2, ep3]),
+        caplog.at_level(logging.WARNING, logger="ragline.registry"),
     ):
         discover_plugins()
 

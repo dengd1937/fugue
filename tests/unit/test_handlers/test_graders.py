@@ -2,14 +2,14 @@
 
 import pytest
 
-from fugue.api.types import Document
+from ragline.api.types import Document
 
 # ===== Fixtures =====
 
 
 @pytest.fixture
 def clean_grader_registry():
-    from fugue.registry import grader_registry
+    from ragline.registry import grader_registry
 
     saved = {n: grader_registry.get(n) for n in grader_registry.names()}
     for n in list(grader_registry.names()):
@@ -29,7 +29,7 @@ def make_doc(doc_id: str, score: float, source: str) -> Document:
 
 
 def test_normalize_score_bm25():
-    from fugue.handlers.graders.normalizer import normalize_score
+    from ragline.handlers.graders.normalizer import normalize_score
 
     doc = make_doc("d1", score=15.0, source="bm25")
     assert normalize_score(doc, {"bm25": 20.0}) == pytest.approx(0.75)
@@ -39,7 +39,7 @@ def test_normalize_score_bm25():
 
 
 def test_normalize_score_vector_default_max():
-    from fugue.handlers.graders.normalizer import normalize_score
+    from ragline.handlers.graders.normalizer import normalize_score
 
     doc = make_doc("d2", score=0.9, source="vector")
     assert normalize_score(doc, {}) == pytest.approx(0.9)
@@ -49,7 +49,7 @@ def test_normalize_score_vector_default_max():
 
 
 def test_normalize_score_clamp_to_1():
-    from fugue.handlers.graders.normalizer import normalize_score
+    from ragline.handlers.graders.normalizer import normalize_score
 
     doc = make_doc("d3", score=25.0, source="bm25")
     assert normalize_score(doc, {"bm25": 20.0}) == pytest.approx(1.0)
@@ -59,7 +59,7 @@ def test_normalize_score_clamp_to_1():
 
 
 def test_normalize_score_zero_max():
-    from fugue.handlers.graders.normalizer import normalize_score
+    from ragline.handlers.graders.normalizer import normalize_score
 
     doc = make_doc("d4", score=10.0, source="bm25")
     assert normalize_score(doc, {"bm25": 0}) == pytest.approx(0.0)
@@ -69,7 +69,7 @@ def test_normalize_score_zero_max():
 
 
 def test_score_grader_sufficient():
-    from fugue.handlers.graders.score import score_grader
+    from ragline.handlers.graders.score import score_grader
 
     docs = [
         make_doc("d1", score=0.6, source="vector"),
@@ -85,7 +85,7 @@ def test_score_grader_sufficient():
 
 
 def test_score_grader_insufficient():
-    from fugue.handlers.graders.score import score_grader
+    from ragline.handlers.graders.score import score_grader
 
     docs = [
         make_doc("d1", score=0.3, source="vector"),
@@ -101,7 +101,7 @@ def test_score_grader_insufficient():
 
 
 def test_score_grader_empty_docs():
-    from fugue.handlers.graders.score import score_grader
+    from ragline.handlers.graders.score import score_grader
 
     avg, decision = score_grader([], "q", threshold=0.6)
     assert avg == pytest.approx(0.0)
@@ -112,7 +112,7 @@ def test_score_grader_empty_docs():
 
 
 def test_score_grader_mixed_sources():
-    from fugue.handlers.graders.score import score_grader
+    from ragline.handlers.graders.score import score_grader
 
     docs = [
         make_doc("d1", score=0.6, source="vector"),
@@ -130,7 +130,7 @@ def test_score_grader_mixed_sources():
 
 
 def test_register_graders_registers_score(clean_grader_registry):
-    from fugue.handlers.graders import register_graders
+    from ragline.handlers.graders import register_graders
 
     register_graders()
     assert clean_grader_registry.has("score")
@@ -140,7 +140,7 @@ def test_register_graders_registers_score(clean_grader_registry):
 
 
 def test_score_grader_threshold_boundary_equal():
-    from fugue.handlers.graders.score import score_grader
+    from ragline.handlers.graders.score import score_grader
 
     docs = [
         make_doc("d1", score=0.6, source="vector"),
@@ -154,7 +154,7 @@ def test_score_grader_threshold_boundary_equal():
 
 
 def test_normalize_score_negative_clamp_to_0():
-    from fugue.handlers.graders.normalizer import normalize_score
+    from ragline.handlers.graders.normalizer import normalize_score
 
     doc = make_doc("d5", score=-5.0, source="bm25")
     assert normalize_score(doc, {"bm25": 20.0}) == pytest.approx(0.0)

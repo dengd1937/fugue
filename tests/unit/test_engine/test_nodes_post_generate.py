@@ -4,11 +4,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from fugue.api.types import Document
-from fugue.engine.nodes.generate import generate
-from fugue.engine.nodes.post_process import MAX_DOCS_BEFORE_PROCESS, post_process
-from fugue.engine.state import RAGState
-from fugue.registry import generator_registry, processor_registry
+from ragline.api.types import Document
+from ragline.engine.nodes.generate import generate
+from ragline.engine.nodes.post_process import MAX_DOCS_BEFORE_PROCESS, post_process
+from ragline.engine.state import RAGState
+from ragline.registry import generator_registry, processor_registry
 
 
 def _doc(source: str, doc_id: str, score: float = 0.9, content: str = "x") -> Document:

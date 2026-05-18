@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from fugue import ProviderConfig
+from ragline import ProviderConfig
 
 # E2E provider 默认走 OpenRouter（OpenAI 兼容，chat + embedding 同一端点）。
 # 可通过环境变量覆盖以切回 OpenAI 原生或其他兼容端点。

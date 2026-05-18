@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from fugue.api.types import TransformResult
+from ragline.api.types import TransformResult
 
 # ===== Fixtures =====
 
@@ -18,7 +18,7 @@ def mock_llm():
 @pytest.fixture
 def clean_transform_registry():
     """清空再 yield，结束时再清空（防止污染其他测试）。"""
-    from fugue.registry import transform_registry
+    from ragline.registry import transform_registry
 
     saved = {n: transform_registry.get(n) for n in transform_registry.names()}
     for n in list(transform_registry.names()):
@@ -34,7 +34,7 @@ def clean_transform_registry():
 
 
 def test_rewrite_fn_parses_lines(mock_llm):
-    from fugue.handlers.transforms.atoms import rewrite_fn
+    from ragline.handlers.transforms.atoms import rewrite_fn
 
     mock_llm.complete.return_value = "Q1\nQ2\nQ3"
     result = rewrite_fn(["原问题"], 3, mock_llm)
@@ -46,7 +46,7 @@ def test_rewrite_fn_parses_lines(mock_llm):
 
 
 def test_hyde_fn_parses_paragraphs(mock_llm):
-    from fugue.handlers.transforms.atoms import hyde_fn
+    from ragline.handlers.transforms.atoms import hyde_fn
 
     mock_llm.complete.return_value = "A1 段第一行\nA1 段第二行\n\nA2 段"
     result = hyde_fn(["q"], 2, mock_llm)
@@ -58,7 +58,7 @@ def test_hyde_fn_parses_paragraphs(mock_llm):
 
 
 def test_step_back_fn_parses_lines(mock_llm):
-    from fugue.handlers.transforms.atoms import step_back_fn
+    from ragline.handlers.transforms.atoms import step_back_fn
 
     mock_llm.complete.return_value = "宏观Q1\n宏观Q2\n宏观Q3"
     result = step_back_fn(["原问题"], 3, mock_llm)
@@ -69,7 +69,7 @@ def test_step_back_fn_parses_lines(mock_llm):
 
 
 def test_empty_queries_returns_empty(mock_llm):
-    from fugue.handlers.transforms.atoms import hyde_fn, rewrite_fn, step_back_fn
+    from ragline.handlers.transforms.atoms import hyde_fn, rewrite_fn, step_back_fn
 
     assert rewrite_fn([], 3, mock_llm) == []
     assert hyde_fn([], 3, mock_llm) == []
@@ -81,7 +81,7 @@ def test_empty_queries_returns_empty(mock_llm):
 
 
 def test_register_transforms_registers_all(mock_llm, clean_transform_registry):
-    from fugue.handlers.transforms import register_transforms
+    from ragline.handlers.transforms import register_transforms
 
     register_transforms(mock_llm)
     assert clean_transform_registry.has("rewrite")
@@ -93,7 +93,7 @@ def test_register_transforms_registers_all(mock_llm, clean_transform_registry):
 
 
 def test_run_transform_branch_atom():
-    from fugue.handlers.transforms.pipeline import run_transform_branch
+    from ragline.handlers.transforms.pipeline import run_transform_branch
 
     mock_registry = MagicMock()
     mock_registry.get.return_value = lambda q, n: ["改写Q1"]
@@ -106,7 +106,7 @@ def test_run_transform_branch_atom():
 
 
 def test_run_transform_branch_pipeline_two_stages():
-    from fugue.handlers.transforms.pipeline import run_transform_branch
+    from ragline.handlers.transforms.pipeline import run_transform_branch
 
     mock_registry = MagicMock()
 
@@ -134,7 +134,7 @@ def test_run_transform_branch_pipeline_two_stages():
 
 
 def test_run_transform_branch_pipeline_with_transform_result():
-    from fugue.handlers.transforms.pipeline import run_transform_branch
+    from ragline.handlers.transforms.pipeline import run_transform_branch
 
     mock_registry = MagicMock()
 
@@ -162,21 +162,21 @@ def test_run_transform_branch_pipeline_with_transform_result():
 
 
 def test_rewrite_prompt_snapshot(snapshot):
-    from fugue.handlers.transforms.atoms import REWRITE_PROMPT
+    from ragline.handlers.transforms.atoms import REWRITE_PROMPT
 
     rendered = REWRITE_PROMPT.format(n=3, query="测试查询")
     assert rendered == snapshot
 
 
 def test_hyde_prompt_snapshot(snapshot):
-    from fugue.handlers.transforms.atoms import HYDE_PROMPT
+    from ragline.handlers.transforms.atoms import HYDE_PROMPT
 
     rendered = HYDE_PROMPT.format(n=3, query="测试查询")
     assert rendered == snapshot
 
 
 def test_step_back_prompt_snapshot(snapshot):
-    from fugue.handlers.transforms.atoms import STEP_BACK_PROMPT
+    from ragline.handlers.transforms.atoms import STEP_BACK_PROMPT
 
     rendered = STEP_BACK_PROMPT.format(n=3, query="测试查询")
     assert rendered == snapshot

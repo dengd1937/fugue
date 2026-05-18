@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from fugue import RAG, FugueConfig, GraphConfig, IngestConfig, ProviderConfig
+from ragline import RAG, FugueConfig, GraphConfig, IngestConfig, ProviderConfig
 
 
 def test_e2e_basic_ingest_and_query(

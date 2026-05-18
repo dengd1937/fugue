@@ -5,10 +5,10 @@ from typing import Any
 
 import pytest
 
-from fugue.api.types import Document
-from fugue.config import GraphConfig
-from fugue.engine.graph import build_rag_graph
-from fugue.registry import (
+from ragline.api.types import Document
+from ragline.config import GraphConfig
+from ragline.engine.graph import build_rag_graph
+from ragline.registry import (
     generator_registry,
     grader_registry,
     processor_registry,
@@ -56,7 +56,7 @@ def _register_minimal(clean_registries: Any) -> None:
     processor_registry.register("identity", lambda docs, q, k, **kw: docs[:k])
     generator_registry.register("basic", lambda q, docs, t: f"answer: {len(docs)} docs")
     # grader: 通过 import 已注册（task 14 模块导入自动注册），需重新注册因清空了
-    from fugue.handlers.graders.score import score_grader
+    from ragline.handlers.graders.score import score_grader
 
     grader_registry.register("score", score_grader)
 
@@ -252,7 +252,7 @@ def test_reducer_without_overwrite_accumulates(clean_registries) -> None:
     用 merge_docs 直接调用验证 reducer 在普通 list 输入下的累加行为。
     这是 reducer 语义锁定测试——未来 LangGraph 行为变化时此测试若失败需重审。
     """
-    from fugue.engine.state import Overwrite, merge_docs
+    from ragline.engine.state import Overwrite, merge_docs
 
     d1 = _doc("vector", "1")
     d2 = _doc("vector", "2")

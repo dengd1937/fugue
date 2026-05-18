@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from fugue.api.types import FugueConfigError
+from ragline.api.types import FugueConfigError
 
 
 # ---------------------------------------------------------------------------
 # 1. 默认实例化
 # ---------------------------------------------------------------------------
 def test_default_instantiation() -> None:
-    from fugue.config import FugueConfig, GraphConfig, IngestConfig
+    from ragline.config import FugueConfig, GraphConfig, IngestConfig
 
     cfg = FugueConfig()
     assert cfg.graph is not None
@@ -28,7 +28,7 @@ def test_default_instantiation() -> None:
 # 2. YAML 往返
 # ---------------------------------------------------------------------------
 def test_yaml_roundtrip(tmp_path: Path) -> None:
-    from fugue.config import FugueConfig, GraphConfig, IngestConfig, ProviderConfig, dump_yaml, load_yaml
+    from ragline.config import FugueConfig, GraphConfig, IngestConfig, ProviderConfig, dump_yaml, load_yaml
 
     custom = FugueConfig(
         graph=GraphConfig(top_k=5, temperature=0.3),
@@ -50,7 +50,7 @@ def test_yaml_roundtrip(tmp_path: Path) -> None:
 # 3. 嵌套 transforms YAML
 # ---------------------------------------------------------------------------
 def test_nested_transforms_yaml(tmp_path: Path) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     content = """
 graph:
@@ -70,7 +70,7 @@ graph:
 # 4. 环境变量展开
 # ---------------------------------------------------------------------------
 def test_env_var_expansion(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     monkeypatch.setenv("TEST_KEY", "abc")
     content = """
@@ -88,7 +88,7 @@ providers:
 # 5. 未定义环境变量保留占位符 + 警告
 # ---------------------------------------------------------------------------
 def test_undefined_env_var(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     content = """
 providers:
@@ -97,7 +97,7 @@ providers:
     yaml_file = tmp_path / "config.yaml"
     yaml_file.write_text(content, encoding="utf-8")
 
-    with caplog.at_level(logging.WARNING, logger="fugue.config"):
+    with caplog.at_level(logging.WARNING, logger="ragline.config"):
         cfg = load_yaml(yaml_file)
 
     assert cfg.providers.llm_api_key == "${UNDEFINED_X}"
@@ -108,7 +108,7 @@ providers:
 # 6. 未知字段被拒绝
 # ---------------------------------------------------------------------------
 def test_unknown_field_rejected(tmp_path: Path) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     content = """
 graph:
@@ -127,7 +127,7 @@ graph:
 # 7. 类型不匹配被拒绝
 # ---------------------------------------------------------------------------
 def test_type_mismatch_rejected(tmp_path: Path) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     content = """
 graph:
@@ -146,7 +146,7 @@ graph:
 # 8. 边界值被拒绝
 # ---------------------------------------------------------------------------
 def test_boundary_value_rejected(tmp_path: Path) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     # n_rewrites: 0 (ge=1 → 应该拒绝)
     content_low = """
@@ -177,7 +177,7 @@ graph:
 # 9. 空 YAML 文件等同默认值
 # ---------------------------------------------------------------------------
 def test_empty_yaml(tmp_path: Path) -> None:
-    from fugue.config import FugueConfig, load_yaml
+    from ragline.config import FugueConfig, load_yaml
 
     yaml_file = tmp_path / "empty.yaml"
     yaml_file.write_text("", encoding="utf-8")
@@ -194,7 +194,7 @@ def test_empty_yaml(tmp_path: Path) -> None:
 # 10. YAML 语法错误
 # ---------------------------------------------------------------------------
 def test_invalid_yaml_syntax(tmp_path: Path) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     content = """
 graph:
@@ -214,7 +214,7 @@ graph:
 # 11. 不存在的文件路径
 # ---------------------------------------------------------------------------
 def test_load_yaml_nonexistent_file() -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     with pytest.raises(FugueConfigError) as exc_info:
         load_yaml("/nonexistent/path/config.yaml")
@@ -226,7 +226,7 @@ def test_load_yaml_nonexistent_file() -> None:
 # 12. 顶层不是 dict
 # ---------------------------------------------------------------------------
 def test_top_level_not_dict(tmp_path: Path) -> None:
-    from fugue.config import load_yaml
+    from ragline.config import load_yaml
 
     content = "- a\n- b\n"
     yaml_file = tmp_path / "list.yaml"

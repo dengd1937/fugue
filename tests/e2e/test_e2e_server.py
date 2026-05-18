@@ -8,9 +8,9 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from fugue.api.rag import RAG
-from fugue.config import FugueConfig, GraphConfig, IngestConfig, ProviderConfig
-from fugue.server.endpoints import create_endpoints
+from ragline.api.rag import RAG
+from ragline.config import FugueConfig, GraphConfig, IngestConfig, ProviderConfig
+from ragline.server.endpoints import create_endpoints
 
 
 def test_e2e_server_endpoints(

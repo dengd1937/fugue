@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 import pypdf
 import pytest
 
-from fugue.api.ingest import IngestPipeline
-from fugue.config import FugueConfig, GraphConfig, IngestConfig
-from fugue.providers.bm25 import BM25Provider
-from fugue.providers.vector_store.chroma import ChromaVectorStore
+from ragline.api.ingest import IngestPipeline
+from ragline.config import FugueConfig, GraphConfig, IngestConfig
+from ragline.providers.bm25 import BM25Provider
+from ragline.providers.vector_store.chroma import ChromaVectorStore
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 

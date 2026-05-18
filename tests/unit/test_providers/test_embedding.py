@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from fugue.api.types import FugueEmbeddingError
+from ragline.api.types import FugueEmbeddingError
 
 
 def make_embedding_response(embeddings: list[list[float]]) -> MagicMock:
@@ -17,7 +17,7 @@ def make_embedding_response(embeddings: list[list[float]]) -> MagicMock:
 @pytest.fixture
 def mock_openai():
     """patch OpenAI 构造函数，返回 mock client 实例。"""
-    with patch("fugue.providers.embedding.OpenAI") as mock_cls:
+    with patch("ragline.providers.embedding.OpenAI") as mock_cls:
         mock_client = MagicMock()
         mock_cls.return_value = mock_client
         yield mock_cls, mock_client
@@ -27,7 +27,7 @@ class TestEmbeddingClientBasic:
     """测试 1: 基础调用 — 验证结构、参数透传。"""
 
     def test_basic_embed_returns_list_of_float_lists(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         mock_cls, mock_client = mock_openai
         mock_client.embeddings.create.return_value = make_embedding_response([[0.1, 0.2], [0.3, 0.4]])
@@ -47,7 +47,7 @@ class TestEmbeddingClientBasic:
         mock_client.embeddings.create.assert_called_once_with(model="nomic-embed", input=["a", "b"])
 
     def test_openai_constructed_with_correct_params(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         mock_cls, mock_client = mock_openai
         mock_client.embeddings.create.return_value = make_embedding_response([[0.1]])
@@ -72,7 +72,7 @@ class TestEmbeddingClientBatching:
     """测试 2: 分批 — batch_size=2，5 个文本 → create 调用 3 次。"""
 
     def test_batching_splits_correctly(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         _, mock_client = mock_openai
         mock_client.embeddings.create.side_effect = [
@@ -101,7 +101,7 @@ class TestEmbeddingClientRetry:
     """测试 3: 批失败 → 拆两半成功。"""
 
     def test_split_retry_on_batch_failure(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         _, mock_client = mock_openai
         e0, e1, e2, e3 = [0.1], [0.2], [0.3], [0.4]
@@ -126,8 +126,8 @@ class TestEmbeddingClientRetry:
 class TestEmbeddingClientDoubleFailure:
     """测试 4: 二次失败 → 抛 FugueEmbeddingError。"""
 
-    def test_raises_fugue_embedding_error_after_split_retry(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+    def test_raises_ragline_embedding_error_after_split_retry(self, mock_openai):
+        from ragline.providers.embedding import EmbeddingClient
 
         _, mock_client = mock_openai
         mock_client.embeddings.create.side_effect = Exception("always fails")
@@ -149,7 +149,7 @@ class TestEmbeddingClientEmpty:
     """测试 5: 空输入 → 直接返回 []，不调用 API。"""
 
     def test_empty_input_short_circuits(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         _, mock_client = mock_openai
 
@@ -168,7 +168,7 @@ class TestEmbeddingClientSingleText:
     """测试 6: 单个 text 失败 → match 'single text'。"""
 
     def test_single_text_failure_raises_single_text_error(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         _, mock_client = mock_openai
         mock_client.embeddings.create.side_effect = Exception("broken")
@@ -187,7 +187,7 @@ class TestEmbeddingClientContextManager:
     """测试 7: context manager → close() 被调用。"""
 
     def test_context_manager_calls_close(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         _, mock_client = mock_openai
 
@@ -205,7 +205,7 @@ class TestEmbeddingClientOrdering:
     """测试 8: 顺序保持 — batch_size=2，4 个文本，验证 embedding 对应顺序。"""
 
     def test_order_preserved_across_batches(self, mock_openai):
-        from fugue.providers.embedding import EmbeddingClient
+        from ragline.providers.embedding import EmbeddingClient
 
         _, mock_client = mock_openai
         batch1_emb = [[1.0, 0.0], [0.0, 1.0]]

@@ -4,8 +4,8 @@ import logging
 
 import pytest
 
-from fugue.api.types import Chunk
-from fugue.providers.vector_store import ChromaVectorStore
+from ragline.api.types import Chunk
+from ragline.providers.vector_store import ChromaVectorStore
 
 logging.getLogger("chromadb").setLevel(logging.WARNING)
 

@@ -9,15 +9,15 @@ from unittest.mock import MagicMock, patch
 def test_basic_rerank_descending_order():
     """compute_score 返回 [0.3, 0.8, 0.1]，结果按分数降序排列。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_inst.compute_score.return_value = [0.3, 0.8, 0.1]
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         reranker = BGEReranker(device="cpu")
         result = reranker.rerank("q", ["a", "b", "c"])
@@ -32,15 +32,15 @@ def test_basic_rerank_descending_order():
 def test_rerank_top_k_truncation():
     """top_k=2 时只返回分数最高的 2 个。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_inst.compute_score.return_value = [0.1, 0.5, 0.9, 0.3, 0.7]
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         reranker = BGEReranker(device="cpu")
         result = reranker.rerank("q", ["a", "b", "c", "d", "e"], top_k=2)
@@ -54,14 +54,14 @@ def test_rerank_top_k_truncation():
 def test_rerank_empty_documents():
     """空文档列表应立即返回 []，不调用 compute_score。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         reranker = BGEReranker(device="cpu")
         result = reranker.rerank("q", [])
@@ -76,14 +76,14 @@ def test_rerank_empty_documents():
 def test_device_auto_cuda_available():
     """device='auto' 且 CUDA 可用时，应以 devices=['cuda'] + use_fp16=True 初始化。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge.require") as mock_require,
         patch("torch.cuda.is_available", return_value=True),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         BGEReranker(device="auto")
 
@@ -99,14 +99,14 @@ def test_device_auto_cuda_available():
 def test_device_auto_cuda_unavailable():
     """device='auto' 且 CUDA 不可用时，应以 devices=['cpu'] + use_fp16=False 初始化。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge.require") as mock_require,
         patch("torch.cuda.is_available", return_value=False),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         BGEReranker(device="auto")
 
@@ -121,14 +121,14 @@ def test_device_auto_cuda_unavailable():
 def test_close_idempotent():
     """close() 应释放 _reranker 属性，多次调用不抛错。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         reranker = BGEReranker(device="cpu")
         assert hasattr(reranker, "_reranker")
@@ -145,12 +145,12 @@ def test_close_idempotent():
 # ---------------------------------------------------------------------------
 def test_device_explicit_cpu():
     """显式 device='cpu' 时，不应调用 torch.cuda.is_available。"""
-    with patch("fugue.providers.reranker.bge.require") as mock_require, patch("torch.cuda.is_available") as mock_cuda:
+    with patch("ragline.providers.reranker.bge.require") as mock_require, patch("torch.cuda.is_available") as mock_cuda:
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         BGEReranker(device="cpu")
 
@@ -166,15 +166,15 @@ def test_device_explicit_cpu():
 def test_single_document_float_score():
     """单文档时 compute_score 返回 float，应正确适配为 [(0, score)]。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_inst.compute_score.return_value = 0.75  # 单个 float
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         reranker = BGEReranker(device="cpu")
         result = reranker.rerank("q", ["only doc"])
@@ -195,15 +195,15 @@ def test_compute_score_returns_numpy_scalar() -> None:
         return  # numpy 不可用时跳过
 
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_inst.compute_score.return_value = scalar_value
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         reranker = BGEReranker(device="cpu")
         result = reranker.rerank("q", ["only doc"])
@@ -219,14 +219,14 @@ def test_compute_score_returns_numpy_scalar() -> None:
 def test_bge_reranker_implements_protocol():
     """BGEReranker 应满足 Reranker Protocol（runtime_checkable）。"""
     with (
-        patch("fugue.providers.reranker.bge.require") as mock_require,
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge.require") as mock_require,
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
         mock_cls = mock_require.return_value.FlagReranker
         mock_inst = MagicMock()
         mock_cls.return_value = mock_inst
 
-        from fugue.providers.reranker import BGEReranker, Reranker
+        from ragline.providers.reranker import BGEReranker, Reranker
 
         reranker = BGEReranker(device="cpu")
         assert isinstance(reranker, Reranker)
@@ -241,17 +241,17 @@ def test_missing_flagembedding_raises_import_error():
 
     with (
         patch(
-            "fugue.providers.reranker.bge.require",
-            side_effect=ImportError("可选依赖 'FlagEmbedding' 未安装。请运行: pip install 'fugue[bge]'"),
+            "ragline.providers.reranker.bge.require",
+            side_effect=ImportError("可选依赖 'FlagEmbedding' 未安装。请运行: pip install 'ragline[bge]'"),
         ),
-        patch("fugue.providers.reranker.bge._resolve_device", return_value="cpu"),
+        patch("ragline.providers.reranker.bge._resolve_device", return_value="cpu"),
     ):
-        from fugue.providers.reranker.bge import BGEReranker
+        from ragline.providers.reranker.bge import BGEReranker
 
         with pytest.raises(ImportError) as exc_info:
             BGEReranker(model_name="x", device="cpu")
 
-        assert "pip install 'fugue[bge]'" in str(exc_info.value)
+        assert "pip install 'ragline[bge]'" in str(exc_info.value)
 
 
 # ---------------------------------------------------------------------------
@@ -259,10 +259,10 @@ def test_missing_flagembedding_raises_import_error():
 # ---------------------------------------------------------------------------
 def test_bge_module_no_toplevel_flagreranker():
     """改造后 bge 模块顶层不应暴露 FlagReranker 名字。"""
-    import fugue.providers.reranker.bge as bgemod
+    import ragline.providers.reranker.bge as bgemod
 
     assert not hasattr(bgemod, "FlagReranker"), "bge 模块顶层不应有 FlagReranker 属性（懒加载）"
 
     # 两种导入路径均不抛异常
-    from fugue.providers.reranker import BGEReranker as _BGEReranker2  # noqa: F401
-    from fugue.providers.reranker.bge import BGEReranker as _BGEReranker1  # noqa: F401
+    from ragline.providers.reranker import BGEReranker as _BGEReranker2  # noqa: F401
+    from ragline.providers.reranker.bge import BGEReranker as _BGEReranker1  # noqa: F401

@@ -6,11 +6,11 @@ from unittest.mock import MagicMock
 import pytest
 from langgraph.types import Command, Send
 
-from fugue.api.types import Document, TransformResult
-from fugue.engine.nodes.query_transform import query_transform
-from fugue.engine.nodes.retrieve import retrieve
-from fugue.engine.state import Overwrite, RAGState
-from fugue.registry import retriever_registry, transform_registry
+from ragline.api.types import Document, TransformResult
+from ragline.engine.nodes.query_transform import query_transform
+from ragline.engine.nodes.retrieve import retrieve
+from ragline.engine.state import Overwrite, RAGState
+from ragline.registry import retriever_registry, transform_registry
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -202,7 +202,7 @@ def test_retrieve_exception_best_effort(clean_retriever_registry, caplog) -> Non
     """retriever 抛错时 best-effort 返回空 documents 并 log.error。"""
     mock_fn = MagicMock(side_effect=RuntimeError("simulated"))
     retriever_registry.register("vector", mock_fn)
-    with caplog.at_level(logging.ERROR, logger="fugue.engine.nodes.retrieve"):
+    with caplog.at_level(logging.ERROR, logger="ragline.engine.nodes.retrieve"):
         result = retrieve(
             {
                 "query": "q",

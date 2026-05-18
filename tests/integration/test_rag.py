@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from fugue import RAG, FugueConfig, GraphConfig, IngestConfig
-from fugue.api.types import FugueConfigError
+from ragline import RAG, FugueConfig, GraphConfig, IngestConfig
+from ragline.api.types import FugueConfigError
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
@@ -15,7 +15,7 @@ FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 @pytest.fixture
 def clean_all_registries():
     """清空所有 registry，yield 后恢复（避免污染其他测试）。"""
-    from fugue.registry import (
+    from ragline.registry import (
         chunker_registry,
         generator_registry,
         grader_registry,
@@ -49,7 +49,7 @@ def clean_all_registries():
 @pytest.fixture
 def mock_providers():
     """patch LLMClient + EmbeddingClient 避免真 API 调用。"""
-    with patch("fugue.api.rag.LLMClient") as mock_llm_cls, patch("fugue.api.rag.EmbeddingClient") as mock_emb_cls:
+    with patch("ragline.api.rag.LLMClient") as mock_llm_cls, patch("ragline.api.rag.EmbeddingClient") as mock_emb_cls:
         mock_llm = MagicMock()
         mock_llm.complete.return_value = "mocked answer"
         mock_llm_cls.return_value = mock_llm
@@ -224,7 +224,7 @@ def test_multi_instance_warning(tmp_path, mock_providers, clean_all_registries, 
     cfg = _make_config(tmp_path)
     rag1 = RAG(cfg)
     # 第二次实例化应触发 warning（因 registry 已含内置 transforms）
-    with caplog.at_level(logging.WARNING, logger="fugue.api.rag"):
+    with caplog.at_level(logging.WARNING, logger="ragline.api.rag"):
         cfg2 = _make_config(tmp_path)
         rag2 = RAG(cfg2)
     assert any("Multiple RAG instances" in r.message for r in caplog.records)

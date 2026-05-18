@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from fugue.api.types import ParsedDocument
+from ragline.api.types import ParsedDocument
 
 # ---------------------------------------------------------------------------
 # clean_chunker_registry fixture
@@ -13,7 +13,7 @@ from fugue.api.types import ParsedDocument
 
 @pytest.fixture
 def clean_chunker_registry():
-    from fugue.registry import chunker_registry
+    from ragline.registry import chunker_registry
 
     saved = {n: chunker_registry.get(n) for n in chunker_registry.names()}
     for n in list(chunker_registry.names()):
@@ -49,7 +49,7 @@ def make_parsed_doc(
 
 def test_chunk_size_splits_large_document() -> None:
     """1000 字符文档（含段落分隔符）chunk_size=200 → ≥5 个 chunks。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     # 创建含段落分隔符的 1000 字符文档
     paragraph = "a" * 100
@@ -68,7 +68,7 @@ def test_chunk_size_splits_large_document() -> None:
 
 def test_chunk_overlap_adjacent_chunks_have_overlap() -> None:
     """相邻 chunks 有 ≥1 字符 substring 重叠（放宽条件）。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     # 使用纯字符内容（无分隔符）确保走字符级切分，overlap 更容易验证
     content = "x" * 1000
@@ -98,7 +98,7 @@ def test_chunk_overlap_adjacent_chunks_have_overlap() -> None:
 
 def test_chunk_id_stability() -> None:
     """同一 ParsedDocument 两次 chunk → chunk_id 完全相同。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     content = "Hello world. " * 50
     doc = make_parsed_doc(content)
@@ -118,7 +118,7 @@ def test_chunk_id_stability() -> None:
 
 def test_chunk_id_unique_for_different_sources() -> None:
     """不同 source_path / 不同 content 产生不同 chunk_id。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     doc1 = make_parsed_doc("a" * 200, source_path="/tmp/file1.txt")
     doc2 = make_parsed_doc("b" * 200, source_path="/tmp/file2.txt")
@@ -139,7 +139,7 @@ def test_chunk_id_unique_for_different_sources() -> None:
 
 def test_parent_id_shared_within_same_source() -> None:
     """同 source_path 的所有 chunks 共享相同 parent_id。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     content = "段落内容。" * 100
     doc = make_parsed_doc(content, source_path="/tmp/shared.txt")
@@ -158,7 +158,7 @@ def test_parent_id_shared_within_same_source() -> None:
 
 def test_metadata_inheritance() -> None:
     """chunks 的 metadata 含原始字段 + chunk_index + source_path。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     doc = make_parsed_doc(
         content="内容段落。" * 50,
@@ -182,7 +182,7 @@ def test_metadata_inheritance() -> None:
 
 def test_empty_parsed_docs_returns_empty_list() -> None:
     """recursive_chunker([], 512, 64) → []。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     result = recursive_chunker([], chunk_size=512, chunk_overlap=64)
 
@@ -196,7 +196,7 @@ def test_empty_parsed_docs_returns_empty_list() -> None:
 
 def test_short_document_returns_single_chunk() -> None:
     """100 字符文档，chunk_size=512 → 1 个 chunk，content == 原文。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     content = "a" * 100
     doc = make_parsed_doc(content)
@@ -214,7 +214,7 @@ def test_short_document_returns_single_chunk() -> None:
 
 def test_empty_content_parsed_document() -> None:
     """空 content 的 ParsedDocument → 0 个 chunks。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     doc = make_parsed_doc(content="")
 
@@ -230,7 +230,7 @@ def test_empty_content_parsed_document() -> None:
 
 def test_register_chunkers_registers_recursive(clean_chunker_registry) -> None:
     """register_chunkers() 后 chunker_registry.has('recursive')。"""
-    from fugue.handlers.chunkers import register_chunkers
+    from ragline.handlers.chunkers import register_chunkers
 
     register_chunkers()
 
@@ -244,7 +244,7 @@ def test_register_chunkers_registers_recursive(clean_chunker_registry) -> None:
 
 def test_large_document_with_multiple_separators() -> None:
     """含多种分隔符的 5000 字符文档，chunk_size=500 → 所有 chunks ≤ 500 字符。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     # 构建含 "\n\n" 段落 + "\n" 行 + ". " 句号的复合文档
     sentences = ["这是一个测试句子，用于验证递归切分逻辑" for _ in range(20)]
@@ -273,7 +273,7 @@ def test_large_document_with_multiple_separators() -> None:
 
 def test_oversized_piece_triggers_deep_recursion() -> None:
     """含超长单 piece 的文档：piece > chunk_size 且 current 非空时需先 flush，覆盖分支 58/68-70。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     # 先有一些小片段积累在 current，然后跟一个超长 piece
     # "\n\n" 分隔：前几段小，最后一段超大
@@ -291,7 +291,7 @@ def test_oversized_piece_triggers_deep_recursion() -> None:
 
 def test_accumulated_pieces_exceed_chunk_size_triggers_recursive_split() -> None:
     """多段落积累后合并超过 chunk_size，触发 merged > chunk_size 的递归切分分支（第 58 行）。"""
-    from fugue.handlers.chunkers.recursive import recursive_chunker
+    from ragline.handlers.chunkers.recursive import recursive_chunker
 
     # 用 "\n\n" 分隔：每段 60 字符，三段积累 = 180+ 字符，超过 chunk_size=100
     # 但单独每段 < chunk_size，会被合并；合并后 > chunk_size 触发递归切分

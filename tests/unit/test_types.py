@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from fugue.api.types import (
+from ragline.api.types import (
     Chunk,
     Document,
     FugueConfigError,
@@ -82,5 +82,5 @@ def test_parsed_document_is_frozen() -> None:
 
 
 # 测试 8：FugueError 是 Exception 子类
-def test_fugue_error_is_exception() -> None:
+def test_ragline_error_is_exception() -> None:
     assert issubclass(FugueError, Exception)
