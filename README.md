@@ -191,4 +191,4 @@ MIT
 ## Links
 
 - 设计规范：[docs/specs/ragline-design.md](docs/specs/ragline-design.md)
-- 开发计划：[docs/specs/fuge_plan.md](docs/specs/fuge_plan.md)
+- 开发计划：[docs/specs/ragline-plan.md](docs/specs/ragline-plan.md)
