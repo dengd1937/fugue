@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 _ENV_VAR_PATTERN = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)\}")
 
 __all__ = [
-    "RaglineConfig",
     "GraphConfig",
     "IngestConfig",
     "ProviderConfig",
-    "load_yaml",
+    "RaglineConfig",
     "dump_yaml",
     "expand_env_vars",
+    "load_yaml",
 ]
 
 

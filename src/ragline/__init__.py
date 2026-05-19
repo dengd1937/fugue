@@ -18,8 +18,15 @@ from ragline.api.types import (
 from ragline.config import GraphConfig, IngestConfig, ProviderConfig, RaglineConfig
 
 __all__ = [
+    "RAG",
     "Chunk",
     "Document",
+    "GraphConfig",
+    "IngestConfig",
+    "IngestResult",
+    "ParsedDocument",
+    "ProviderConfig",
+    "QueryResult",
     "RaglineConfig",
     "RaglineConfigError",
     "RaglineEmbeddingError",
@@ -27,12 +34,5 @@ __all__ = [
     "RaglineLLMError",
     "RaglineRegistryError",
     "RaglineRetrieverError",
-    "GraphConfig",
-    "IngestConfig",
-    "IngestResult",
-    "ParsedDocument",
-    "ProviderConfig",
-    "QueryResult",
-    "RAG",
     "TransformResult",
 ]
