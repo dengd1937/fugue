@@ -338,7 +338,7 @@ class RaglineConfig:
 
 @dataclass
 class GraphConfig:
-    # 沿用 fuge_plan.md，行为单一变更入口
+    # 沿用 ragline-plan.md，行为单一变更入口
     transforms: list[str | list[str]] = field(default_factory=lambda: ["rewrite"])
     n_rewrites: int = 3
     max_queries: int = 20
@@ -823,7 +823,7 @@ kg = "ragline_kg_plugin.handlers:register"
 
 ## 6. 参考资料
 
-- 原始设计：`docs/specs/fuge_plan.md`
+- 原始设计：`docs/specs/ragline-plan.md`
 - 竞品资料：
   - [LangChain RAG Agent (LangGraph)](https://docs.langchain.com/oss/python/langgraph/agentic-rag)
   - [LlamaIndex Ingestion Pipeline](https://developers.llamaindex.ai/python/framework/module_guides/loading/ingestion_pipeline/)
