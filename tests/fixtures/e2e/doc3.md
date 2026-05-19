@@ -8,4 +8,4 @@ Hybrid retrieval combines BM25 and vector search results using Reciprocal Rank F
 RRF scores each document by the sum of 1/(60 + rank) across source rankings, with
 optional source weights.
 
-In Fugue, BM25 is built-in via rank_bm25 with in-memory rebuild on startup.
+In Ragline, BM25 is built-in via rank_bm25 with in-memory rebuild on startup.

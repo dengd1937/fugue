@@ -1,7 +1,7 @@
 """tests/unit/test_engine/test_runtime.py — get_config 测试。"""
 
-from fugue.config import GraphConfig
-from fugue.engine.runtime import get_config
+from ragline.config import GraphConfig
+from ragline.engine.runtime import get_config
 
 
 def test_get_config_extracts_known_fields() -> None:

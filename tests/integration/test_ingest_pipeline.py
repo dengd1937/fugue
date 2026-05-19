@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 import pypdf
 import pytest
 
-from fugue.api.ingest import IngestPipeline
-from fugue.config import FugueConfig, GraphConfig, IngestConfig
-from fugue.providers.bm25 import BM25Provider
-from fugue.providers.vector_store.chroma import ChromaVectorStore
+from ragline.api.ingest import IngestPipeline
+from ragline.config import GraphConfig, IngestConfig, RaglineConfig
+from ragline.providers.bm25 import BM25Provider
+from ragline.providers.vector_store.chroma import ChromaVectorStore
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
@@ -50,8 +50,8 @@ def real_bm25():
     return BM25Provider()
 
 
-def _config(*, retrievers: list[str] | None = None, **ingest_overrides: Any) -> FugueConfig:
-    return FugueConfig(
+def _config(*, retrievers: list[str] | None = None, **ingest_overrides: Any) -> RaglineConfig:
+    return RaglineConfig(
         graph=GraphConfig(retrievers=retrievers or ["vector"]),
         ingest=IngestConfig(
             chunk_size=200,

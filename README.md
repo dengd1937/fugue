@@ -1,8 +1,8 @@
-# Fugue
+# Ragline
 
 Configuration-driven RAG. Topology stays, behavior plugs in.
 
-Fugue 是一个配置驱动的 Python RAG 库，基于 LangGraph 构建。图拓扑（transform → retrieve → grade → process → generate）固定不变，每个节点的行为通过 YAML 配置和插件机制动态注入。
+Ragline 是一个配置驱动的 Python RAG 库，基于 LangGraph 构建。图拓扑（transform → retrieve → grade → process → generate）固定不变，每个节点的行为通过 YAML 配置和插件机制动态注入。
 
 ---
 
@@ -10,23 +10,23 @@ Fugue 是一个配置驱动的 Python RAG 库，基于 LangGraph 构建。图拓
 
 ```bash
 # 推荐：安装所有可选组件
-pip install "fugue[all]"
+pip install "ragline[all]"
 
 # 最小安装（含 ChromaDB 向量存储；无 PDF、无本地 reranker、无 server）
-pip install fugue
+pip install ragline
 
 # 按需安装 extras
-pip install "fugue[server]"   # REST API 服务（FastAPI + uvicorn）
-pip install "fugue[chroma]"   # ChromaDB 向量存储（已随主包默认安装；保留作向后兼容）
-pip install "fugue[bge]"      # 本地 BGE reranker（FlagEmbedding）
-pip install "fugue[pdf]"      # PDF 解析（pypdf）
+pip install "ragline[server]"   # REST API 服务（FastAPI + uvicorn）
+pip install "ragline[chroma]"   # ChromaDB 向量存储（已随主包默认安装；保留作向后兼容）
+pip install "ragline[bge]"      # 本地 BGE reranker（FlagEmbedding）
+pip install "ragline[pdf]"      # PDF 解析（pypdf）
 ```
 
 ---
 
 ## Quick Start
 
-创建配置文件 `fugue.yaml`：
+创建配置文件 `ragline.yaml`：
 
 ```yaml
 graph:
@@ -45,7 +45,7 @@ graph:
 ingest:
   chunk_size: 512
   chunk_overlap: 64
-  persist_dir: ./.fugue
+  persist_dir: ./.ragline
 
 providers:
   llm_model: gpt-4o-mini
@@ -55,12 +55,12 @@ providers:
 编写 Python 代码：
 
 ```python
-from fugue import RAG
+from ragline import RAG
 
-with RAG.from_yaml("fugue.yaml") as rag:
+with RAG.from_yaml("ragline.yaml") as rag:
     rag.ingest(["./docs/**/*.md"])
 
-    result = rag.query("Fugue 的核心设计原则是什么？")
+    result = rag.query("Ragline 的核心设计原则是什么？")
     print(result.answer)
 
     for doc in result.ranked_documents:
@@ -71,7 +71,7 @@ with RAG.from_yaml("fugue.yaml") as rag:
 
 ---
 
-## Why Fugue?
+## Why Ragline?
 
 ### 配置即行为（Configuration-as-behavior）
 
@@ -83,19 +83,19 @@ RAG 流水线的每一个节点——query transform、retriever 组合、post-p
 
 ### 无限可插拔（Unlimited pluggability）
 
-任何节点都可以被第三方插件替换或扩展。通过 `entry_points` 机制，插件包安装后自动被 Fugue 发现，无需修改框架代码。内置注册表（Registry）提供 transform、retriever、processor、grader、generator、parser、chunker 七个扩展点。
+任何节点都可以被第三方插件替换或扩展。通过 `entry_points` 机制，插件包安装后自动被 Ragline 发现，无需修改框架代码。内置注册表（Registry）提供 transform、retriever、processor、grader、generator、parser、chunker 七个扩展点。
 
 ---
 
 ## Plugin Example
 
-下面展示如何用约 30 行代码编写一个自定义 retriever，并通过 entry_points 接入 Fugue。
+下面展示如何用约 30 行代码编写一个自定义 retriever，并通过 entry_points 接入 Ragline。
 
 ```python
 # my_plugin/retrievers.py
 from typing import Any
 
-from fugue.registry import retriever_registry
+from ragline.registry import retriever_registry
 
 
 def my_custom_retriever(
@@ -123,11 +123,11 @@ def register() -> None:
 在 `pyproject.toml` 中声明 entry point：
 
 ```toml
-[project.entry-points."fugue.handlers"]
+[project.entry-points."ragline.handlers"]
 my_plugin = "my_plugin.retrievers:register"
 ```
 
-安装插件包后，在 `fugue.yaml` 中直接使用：
+安装插件包后，在 `ragline.yaml` 中直接使用：
 
 ```yaml
 graph:
@@ -138,7 +138,7 @@ graph:
     - rrf
 ```
 
-Fugue 在 `RAG()` 初始化时自动调用 `discover_plugins()` 扫描所有已安装的 entry points。
+Ragline 在 `RAG()` 初始化时自动调用 `discover_plugins()` 扫描所有已安装的 entry points。
 
 ---
 
@@ -160,9 +160,9 @@ Fugue 在 `RAG()` 初始化时自动调用 `discover_plugins()` 扫描所有已�
 
 ## Security
 
-`fugue serve`（即 `fugue.server`）以 **单 worker、无认证** 模式运行。它不提供任何身份验证、速率限制或访问控制。
+`ragline serve`（即 `ragline.server`）以 **单 worker、无认证** 模式运行。它不提供任何身份验证、速率限制或访问控制。
 
-**请仅将 Fugue server 部署在可信内网环境中。** 不要将其直接暴露到公共互联网，除非在前面部署了独立的认证代理（如 nginx + auth 模块）。
+**请仅将 Ragline server 部署在可信内网环境中。** 不要将其直接暴露到公共互联网，除非在前面部署了独立的认证代理（如 nginx + auth 模块）。
 
 ---
 
@@ -190,5 +190,5 @@ MIT
 
 ## Links
 
-- 设计规范：[docs/specs/fugue-design.md](docs/specs/fugue-design.md)
+- 设计规范：[docs/specs/ragline-design.md](docs/specs/ragline-design.md)
 - 开发计划：[docs/specs/fuge_plan.md](docs/specs/fuge_plan.md)

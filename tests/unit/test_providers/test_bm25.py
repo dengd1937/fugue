@@ -6,8 +6,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pytest
 
-from fugue.api.types import Chunk
-from fugue.providers.bm25 import BM25Provider
+from ragline.api.types import Chunk
+from ragline.providers.bm25 import BM25Provider
 
 
 def _make_chunk(i: int, content: str) -> Chunk:

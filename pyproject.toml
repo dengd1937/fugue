@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fugue"
+name = "ragline"
 version = "0.1.0"
 description = "配置驱动的通用 Python RAG 库"
 readme = "README.md"
@@ -42,14 +42,14 @@ pdf = [
     "pypdf>=4.2",
 ]
 all = [
-    "fugue[server,bge,chroma,pdf]",
+    "ragline[server,bge,chroma,pdf]",
 ]
 
 [project.scripts]
-fugue = "fugue.server.cli:main"
+ragline = "ragline.server.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fugue"]
+packages = ["src/ragline"]
 
 [tool.ruff]
 line-length = 120
@@ -67,7 +67,7 @@ module = ["FlagEmbedding.*", "chromadb.*", "rank_bm25.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "-m 'not e2e' --cov=fugue --cov-report=term-missing --cov-fail-under=90"
+addopts = "-m 'not e2e' --cov=ragline --cov-report=term-missing --cov-fail-under=90"
 markers = [
     "e2e: marks tests as end-to-end (requires API keys)",
     "slow: marks tests as slow (large data / performance benchmarks)",

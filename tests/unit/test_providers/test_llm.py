@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from fugue.api.types import FugueLLMError
-from fugue.providers.llm import LLMClient
+from ragline.api.types import RaglineLLMError
+from ragline.providers.llm import LLMClient
 
 # ---------------------------------------------------------------------------
 # 测试 1：基础调用
@@ -17,7 +17,7 @@ from fugue.providers.llm import LLMClient
 
 def test_complete_basic_call() -> None:
     """complete() 正确调用 chat.completions.create 并返回内容。"""
-    with patch("fugue.providers.llm.OpenAI") as mock_openai_cls:
+    with patch("ragline.providers.llm.OpenAI") as mock_openai_cls:
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
 
@@ -42,8 +42,8 @@ def test_complete_basic_call() -> None:
 
 
 def test_complete_wraps_exception_as_llm_error() -> None:
-    """chat.completions.create 抛异常时，complete() 包装为 FugueLLMError。"""
-    with patch("fugue.providers.llm.OpenAI") as mock_openai_cls:
+    """chat.completions.create 抛异常时，complete() 包装为 RaglineLLMError。"""
+    with patch("ragline.providers.llm.OpenAI") as mock_openai_cls:
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
 
@@ -52,13 +52,13 @@ def test_complete_wraps_exception_as_llm_error() -> None:
 
         llm = LLMClient(base_url="http://localhost", api_key="test-key", model="test-model")
 
-        with pytest.raises(FugueLLMError, match="LLM call failed"):
+        with pytest.raises(RaglineLLMError, match="LLM call failed"):
             llm.complete("x")
 
         # 验证原始异常通过 __cause__ 链可访问
         try:
             llm.complete("x")
-        except FugueLLMError as exc:
+        except RaglineLLMError as exc:
             assert exc.__cause__ is original_exc
 
 
@@ -84,7 +84,7 @@ def test_semaphore_concurrency_limit() -> None:
         resp.choices[0].message.content = "ok"
         return resp
 
-    with patch("fugue.providers.llm.OpenAI") as mock_openai_cls:
+    with patch("ragline.providers.llm.OpenAI") as mock_openai_cls:
         mock_client_inst = MagicMock()
         mock_client_inst.chat.completions.create.side_effect = mock_create
         mock_openai_cls.return_value = mock_client_inst
@@ -120,7 +120,7 @@ def test_semaphore_concurrency_limit() -> None:
 
 def test_complete_temperature_passthrough() -> None:
     """complete() 将 temperature 参数正确透传给 chat.completions.create。"""
-    with patch("fugue.providers.llm.OpenAI") as mock_openai_cls:
+    with patch("ragline.providers.llm.OpenAI") as mock_openai_cls:
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
 
@@ -142,7 +142,7 @@ def test_complete_temperature_passthrough() -> None:
 
 def test_close_delegates_to_underlying_client() -> None:
     """close() 调用底层 OpenAI client 的 close()。"""
-    with patch("fugue.providers.llm.OpenAI") as mock_openai_cls:
+    with patch("ragline.providers.llm.OpenAI") as mock_openai_cls:
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
 
@@ -159,7 +159,7 @@ def test_close_delegates_to_underlying_client() -> None:
 
 def test_context_manager_closes_client() -> None:
     """with 语句退出时，__exit__ 应调用底层 client 的 close()。"""
-    with patch("fugue.providers.llm.OpenAI") as mock_openai_cls:
+    with patch("ragline.providers.llm.OpenAI") as mock_openai_cls:
         mock_client_inst = MagicMock()
         mock_openai_cls.return_value = mock_client_inst
 

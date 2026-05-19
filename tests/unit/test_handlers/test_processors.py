@@ -4,14 +4,14 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from fugue.api.types import Document
+from ragline.api.types import Document
 
 # ===== Fixtures =====
 
 
 @pytest.fixture
 def clean_processor_registry():
-    from fugue.registry import processor_registry
+    from ragline.registry import processor_registry
 
     saved = {n: processor_registry.get(n) for n in processor_registry.names()}
     for n in list(processor_registry.names()):
@@ -43,7 +43,7 @@ def three_docs():
 
 def test_rrf_basic_scores(three_docs):
     """验证 rrf_score 按 RRF_K=60 的公式正确计算。"""
-    from fugue.handlers.processors.rrf import RRF_K, rrf_fn
+    from ragline.handlers.processors.rrf import RRF_K, rrf_fn
 
     result = rrf_fn(three_docs, "q", top_k=10)
 
@@ -67,7 +67,7 @@ def test_rrf_basic_scores(three_docs):
 
 def test_rrf_weighted(three_docs):
     """bm25 权重 0.5，相同 rank 下 bm25 分数是 vector 的一半。"""
-    from fugue.handlers.processors.rrf import rrf_fn
+    from ragline.handlers.processors.rrf import rrf_fn
 
     result = rrf_fn(three_docs, "q", top_k=10, retriever_weights={"vector": 1.0, "bm25": 0.5})
 
@@ -84,7 +84,7 @@ def test_rrf_weighted(three_docs):
 
 def test_rrf_same_doc_id_different_source():
     """相同 doc_id 不同 source 应保留两条，不去重。"""
-    from fugue.handlers.processors.rrf import rrf_fn
+    from ragline.handlers.processors.rrf import rrf_fn
 
     docs = [
         Document(doc_id="a", content="from vector", score=0.9, source="vector", metadata={}),
@@ -98,7 +98,7 @@ def test_rrf_same_doc_id_different_source():
 
 
 def test_rrf_empty_input():
-    from fugue.handlers.processors.rrf import rrf_fn
+    from ragline.handlers.processors.rrf import rrf_fn
 
     assert rrf_fn([], "q", top_k=10) == []
 
@@ -108,7 +108,7 @@ def test_rrf_empty_input():
 
 def test_rrf_top_k_truncation():
     """5 docs，top_k=2 只返回 2 个。"""
-    from fugue.handlers.processors.rrf import rrf_fn
+    from ragline.handlers.processors.rrf import rrf_fn
 
     docs = [Document(doc_id=f"d{i}", content=f"c{i}", score=float(i), source="vector", metadata={}) for i in range(5)]
     result = rrf_fn(docs, "q", top_k=2)
@@ -120,7 +120,7 @@ def test_rrf_top_k_truncation():
 
 def test_rerank_basic(mock_reranker):
     """验证 rerank 按 scored 排序返回正确文档。"""
-    from fugue.handlers.processors.rerank import make_rerank
+    from ragline.handlers.processors.rerank import make_rerank
 
     docs = [
         Document(doc_id="a", content="doc a", score=0.5, source="vector", metadata={}),
@@ -147,7 +147,7 @@ def test_rerank_basic(mock_reranker):
 
 def test_rerank_empty_input(mock_reranker):
     """空输入直接返回 []，不调用 reranker.rerank。"""
-    from fugue.handlers.processors.rerank import make_rerank
+    from ragline.handlers.processors.rerank import make_rerank
 
     rerank_fn = make_rerank(mock_reranker)
     result = rerank_fn([], "q", top_k=10)
@@ -161,7 +161,7 @@ def test_rerank_empty_input(mock_reranker):
 
 def test_rerank_top_k_passed_through(mock_reranker):
     """top_k 应原样传递给 reranker.rerank。"""
-    from fugue.handlers.processors.rerank import make_rerank
+    from ragline.handlers.processors.rerank import make_rerank
 
     docs = [
         Document(doc_id="a", content="c", score=0.5, source="vector", metadata={}),
@@ -179,7 +179,7 @@ def test_rerank_top_k_passed_through(mock_reranker):
 
 def test_register_processors_registers_all(mock_reranker, clean_processor_registry):
     """register_processors 后 rrf 和 rerank 都在 registry 中。"""
-    from fugue.handlers.processors import register_processors
+    from ragline.handlers.processors import register_processors
 
     register_processors(mock_reranker)
 
@@ -192,7 +192,7 @@ def test_register_processors_registers_all(mock_reranker, clean_processor_regist
 
 def test_rrf_rank_order_same_source():
     """同 source 3 docs，score 降序排 rank，验证 rrf_score 对应 1/(60+rank)。"""
-    from fugue.handlers.processors.rrf import RRF_K, rrf_fn
+    from ragline.handlers.processors.rrf import RRF_K, rrf_fn
 
     docs = [
         Document(doc_id="d1", content="c1", score=0.9, source="vector", metadata={}),

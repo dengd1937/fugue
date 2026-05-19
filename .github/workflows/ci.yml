@@ -39,13 +39,13 @@ jobs:
         run: uv run ruff format --check src tests
 
       - name: Mypy type check
-        run: uv run mypy src/fugue
+        run: uv run mypy src/ragline
 
       - name: Import linter
         run: uv run lint-imports --config .importlinter
 
       - name: Run tests
-        run: uv run pytest -m 'not e2e' --cov=fugue --cov-fail-under=90 --cov-report=xml
+        run: uv run pytest -m 'not e2e' --cov=ragline --cov-fail-under=90 --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: ${{ !github.event.pull_request.head.repo.fork }}

@@ -23,6 +23,6 @@ repos:
         entry: uv run mypy
         language: system
         types: [python]
-        files: ^src/fugue/
+        files: ^src/ragline/
         pass_filenames: false
-        args: ["src/fugue"]
+        args: ["src/ragline"]

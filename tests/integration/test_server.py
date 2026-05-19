@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from fugue.api.types import Document, FugueError, IngestResult, QueryResult
-from fugue.server.endpoints import create_endpoints
+from ragline.api.types import Document, IngestResult, QueryResult, RaglineError
+from ragline.server.endpoints import create_endpoints
 
 
 def _mock_rag() -> MagicMock:
@@ -55,7 +55,7 @@ def test_query_endpoint_returns_answer() -> None:
 
 def test_query_endpoint_handles_exception() -> None:
     rag = _mock_rag()
-    rag.query.side_effect = FugueError("LLM unavailable")
+    rag.query.side_effect = RaglineError("LLM unavailable")
     client = TestClient(_make_app(rag))
     resp = client.post("/query", json={"question": "test"})
     assert resp.status_code == 500
@@ -94,7 +94,7 @@ def test_ingest_endpoint_returns_result() -> None:
 
 def test_ingest_endpoint_handles_exception() -> None:
     rag = _mock_rag()
-    rag.ingest.side_effect = FugueError("vector store failed")
+    rag.ingest.side_effect = RaglineError("vector store failed")
     client = TestClient(_make_app(rag))
     resp = client.post("/ingest", json={"paths": ["./x.md"]})
     assert resp.status_code == 500
@@ -133,10 +133,10 @@ ingest:
   persist_dir: "{tmp_path / "chroma"}"
 """)
     # mock RAG.from_yaml 避免实际初始化 providers
-    with patch("fugue.server.app.RAG.from_yaml") as mock_from_yaml:
+    with patch("ragline.server.app.RAG.from_yaml") as mock_from_yaml:
         mock_rag = _mock_rag()
         mock_from_yaml.return_value = mock_rag
-        from fugue.server.app import create_app
+        from ragline.server.app import create_app
 
         app = create_app(yaml_path)
         assert app is not None

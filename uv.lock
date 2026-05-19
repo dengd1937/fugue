@@ -840,83 +840,6 @@ http = [
 ]
 
 [[package]]
-name = "fugue"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "chromadb" },
-    { name = "langchain-core" },
-    { name = "langgraph" },
-    { name = "openai" },
-    { name = "pydantic" },
-    { name = "pyyaml" },
-    { name = "rank-bm25" },
-    { name = "transformers" },
-]
-
-[package.optional-dependencies]
-all = [
-    { name = "fastapi" },
-    { name = "flagembedding" },
-    { name = "pypdf" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-bge = [
-    { name = "flagembedding" },
-]
-dev = [
-    { name = "import-linter" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-mock" },
-    { name = "ruff" },
-    { name = "syrupy" },
-]
-pdf = [
-    { name = "pypdf" },
-]
-server = [
-    { name = "fastapi" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "types-pyyaml" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "chromadb", specifier = ">=0.5" },
-    { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.111" },
-    { name = "flagembedding", marker = "extra == 'bge'", specifier = ">=1.2" },
-    { name = "fugue", extras = ["server", "bge", "chroma", "pdf"], marker = "extra == 'all'" },
-    { name = "import-linter", marker = "extra == 'dev'", specifier = ">=2.1" },
-    { name = "langchain-core", specifier = ">=0.3" },
-    { name = "langgraph", specifier = ">=0.3,<0.4" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
-    { name = "openai", specifier = ">=1.40" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7" },
-    { name = "pydantic", specifier = ">=2.6" },
-    { name = "pypdf", marker = "extra == 'pdf'", specifier = ">=4.2" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
-    { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.14" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "rank-bm25", specifier = ">=0.2.2" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
-    { name = "syrupy", marker = "extra == 'dev'", specifier = ">=4.0" },
-    { name = "transformers", specifier = ">=4.44.2,<5" },
-    { name = "uvicorn", extras = ["standard"], marker = "extra == 'server'", specifier = ">=0.30" },
-]
-provides-extras = ["dev", "server", "bge", "chroma", "pdf", "all"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "types-pyyaml", specifier = ">=6.0.12.20260510" }]
-
-[[package]]
 name = "googleapis-common-protos"
 version = "1.75.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3257,6 +3180,83 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/f0/7a/1c7270340330e575b92f397352af856a8c06f230aa3e76f86b39d01b416a/pyyaml-6.0.3-cp314-cp314t-win_amd64.whl", hash = "sha256:4ad1906908f2f5ae4e5a8ddfce73c320c2a1429ec52eafd27138b7f1cbe341c9", size = 174062, upload-time = "2025-09-25T21:32:55.767Z" },
     { url = "https://files.pythonhosted.org/packages/f1/12/de94a39c2ef588c7e6455cfbe7343d3b2dc9d6b6b2f40c4c6565744c873d/pyyaml-6.0.3-cp314-cp314t-win_arm64.whl", hash = "sha256:ebc55a14a21cb14062aa4162f906cd962b28e2e9ea38f9b4391244cd8de4ae0b", size = 149341, upload-time = "2025-09-25T21:32:56.828Z" },
 ]
+
+[[package]]
+name = "ragline"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "chromadb" },
+    { name = "langchain-core" },
+    { name = "langgraph" },
+    { name = "openai" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "rank-bm25" },
+    { name = "transformers" },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "fastapi" },
+    { name = "flagembedding" },
+    { name = "pypdf" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+bge = [
+    { name = "flagembedding" },
+]
+dev = [
+    { name = "import-linter" },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+    { name = "ruff" },
+    { name = "syrupy" },
+]
+pdf = [
+    { name = "pypdf" },
+]
+server = [
+    { name = "fastapi" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "types-pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "chromadb", specifier = ">=0.5" },
+    { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.111" },
+    { name = "flagembedding", marker = "extra == 'bge'", specifier = ">=1.2" },
+    { name = "import-linter", marker = "extra == 'dev'", specifier = ">=2.1" },
+    { name = "langchain-core", specifier = ">=0.3" },
+    { name = "langgraph", specifier = ">=0.3,<0.4" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
+    { name = "openai", specifier = ">=1.40" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7" },
+    { name = "pydantic", specifier = ">=2.6" },
+    { name = "pypdf", marker = "extra == 'pdf'", specifier = ">=4.2" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
+    { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.14" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "ragline", extras = ["server", "bge", "chroma", "pdf"], marker = "extra == 'all'" },
+    { name = "rank-bm25", specifier = ">=0.2.2" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
+    { name = "syrupy", marker = "extra == 'dev'", specifier = ">=4.0" },
+    { name = "transformers", specifier = ">=4.44.2,<5" },
+    { name = "uvicorn", extras = ["standard"], marker = "extra == 'server'", specifier = ">=0.30" },
+]
+provides-extras = ["dev", "server", "bge", "chroma", "pdf", "all"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "types-pyyaml", specifier = ">=6.0.12.20260510" }]
 
 [[package]]
 name = "rank-bm25"

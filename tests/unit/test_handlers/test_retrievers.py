@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from fugue.api.types import Document
+from ragline.api.types import Document
 
 # ===== Fixtures =====
 
@@ -30,7 +30,7 @@ def mock_bm25():
 @pytest.fixture
 def clean_retriever_registry():
     """清空再 yield，结束时再清空（防止污染其他测试）。"""
-    from fugue.registry import retriever_registry
+    from ragline.registry import retriever_registry
 
     saved = {n: retriever_registry.get(n) for n in retriever_registry.names()}
     for n in list(retriever_registry.names()):
@@ -46,7 +46,7 @@ def clean_retriever_registry():
 
 
 def test_vector_search_basic(mock_vector_store, mock_embedding):
-    from fugue.handlers.retrievers.atoms import make_vector_search
+    from ragline.handlers.retrievers.atoms import make_vector_search
 
     mock_embedding.embed.return_value = [[0.1, 0.2, 0.3]]
     mock_vector_store.similarity_search.return_value = [
@@ -72,7 +72,7 @@ def test_vector_search_basic(mock_vector_store, mock_embedding):
 
 
 def test_bm25_search_basic(mock_bm25):
-    from fugue.handlers.retrievers.atoms import make_bm25_search
+    from ragline.handlers.retrievers.atoms import make_bm25_search
 
     mock_bm25.search.return_value = [
         Document(doc_id="b1", content="b", score=2.5, source="bm25", metadata={}),
@@ -89,7 +89,7 @@ def test_bm25_search_basic(mock_bm25):
 
 
 def test_vector_search_metadata_filter_passed_through(mock_vector_store, mock_embedding):
-    from fugue.handlers.retrievers.atoms import make_vector_search
+    from ragline.handlers.retrievers.atoms import make_vector_search
 
     mock_embedding.embed.return_value = [[0.5, 0.6, 0.7]]
     mock_vector_store.similarity_search.return_value = []
@@ -108,7 +108,7 @@ def test_vector_search_metadata_filter_passed_through(mock_vector_store, mock_em
 
 
 def test_bm25_search_ignores_metadata_filter(mock_bm25):
-    from fugue.handlers.retrievers.atoms import make_bm25_search
+    from ragline.handlers.retrievers.atoms import make_bm25_search
 
     mock_bm25.search.return_value = []
 
@@ -124,7 +124,7 @@ def test_bm25_search_ignores_metadata_filter(mock_bm25):
 
 
 def test_register_retrievers_registers_all(mock_vector_store, mock_embedding, mock_bm25, clean_retriever_registry):
-    from fugue.handlers.retrievers import register_retrievers
+    from ragline.handlers.retrievers import register_retrievers
 
     register_retrievers(mock_vector_store, mock_embedding, mock_bm25)
 
@@ -136,7 +136,7 @@ def test_register_retrievers_registers_all(mock_vector_store, mock_embedding, mo
 
 
 def test_vector_search_does_not_modify_original_documents(mock_vector_store, mock_embedding):
-    from fugue.handlers.retrievers.atoms import make_vector_search
+    from ragline.handlers.retrievers.atoms import make_vector_search
 
     original_doc = Document(doc_id="d1", content="c1", score=0.9, source="original_source", metadata={})
     mock_embedding.embed.return_value = [[0.1, 0.2, 0.3]]
@@ -157,7 +157,7 @@ def test_vector_search_does_not_modify_original_documents(mock_vector_store, moc
 
 
 def test_vector_search_overrides_source_field(mock_vector_store, mock_embedding):
-    from fugue.handlers.retrievers.atoms import make_vector_search
+    from ragline.handlers.retrievers.atoms import make_vector_search
 
     mock_embedding.embed.return_value = [[0.1, 0.2, 0.3]]
     mock_vector_store.similarity_search.return_value = [
@@ -176,7 +176,7 @@ def test_vector_search_overrides_source_field(mock_vector_store, mock_embedding)
 def test_registered_vector_retriever_is_callable(
     mock_vector_store, mock_embedding, mock_bm25, clean_retriever_registry
 ):
-    from fugue.handlers.retrievers import register_retrievers
+    from ragline.handlers.retrievers import register_retrievers
 
     mock_embedding.embed.return_value = [[0.1, 0.2, 0.3]]
     mock_vector_store.similarity_search.return_value = [

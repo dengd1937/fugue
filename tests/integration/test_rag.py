@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from fugue import RAG, FugueConfig, GraphConfig, IngestConfig
-from fugue.api.types import FugueConfigError
+from ragline import RAG, GraphConfig, IngestConfig, RaglineConfig
+from ragline.api.types import RaglineConfigError
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
@@ -15,7 +15,7 @@ FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 @pytest.fixture
 def clean_all_registries():
     """清空所有 registry，yield 后恢复（避免污染其他测试）。"""
-    from fugue.registry import (
+    from ragline.registry import (
         chunker_registry,
         generator_registry,
         grader_registry,
@@ -49,7 +49,7 @@ def clean_all_registries():
 @pytest.fixture
 def mock_providers():
     """patch LLMClient + EmbeddingClient 避免真 API 调用。"""
-    with patch("fugue.api.rag.LLMClient") as mock_llm_cls, patch("fugue.api.rag.EmbeddingClient") as mock_emb_cls:
+    with patch("ragline.api.rag.LLMClient") as mock_llm_cls, patch("ragline.api.rag.EmbeddingClient") as mock_emb_cls:
         mock_llm = MagicMock()
         mock_llm.complete.return_value = "mocked answer"
         mock_llm_cls.return_value = mock_llm
@@ -66,8 +66,8 @@ def fake_api_key(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "fake-key-for-test")
 
 
-def _make_config(tmp_path: Path, **graph_overrides) -> FugueConfig:
-    return FugueConfig(
+def _make_config(tmp_path: Path, **graph_overrides) -> RaglineConfig:
+    return RaglineConfig(
         graph=GraphConfig(**graph_overrides),
         ingest=IngestConfig(persist_dir=str(tmp_path / "chroma")),
     )
@@ -119,9 +119,9 @@ def test_context_manager_calls_close(tmp_path, mock_providers, clean_all_registr
 
 
 def test_fail_fast_unknown_retriever(tmp_path, mock_providers, clean_all_registries) -> None:
-    """config 含 nonexistent retriever → 抛 FugueConfigError 含 'nonexistent'。"""
+    """config 含 nonexistent retriever → 抛 RaglineConfigError 含 'nonexistent'。"""
     cfg = _make_config(tmp_path, retrievers=["nonexistent"])
-    with pytest.raises(FugueConfigError, match="nonexistent"):
+    with pytest.raises(RaglineConfigError, match="nonexistent"):
         RAG(cfg)
 
 
@@ -135,7 +135,7 @@ def test_fail_fast_multiple_errors(tmp_path, mock_providers, clean_all_registrie
         retrievers=["nonexistent_r"],
         processors=["nonexistent_p"],
     )
-    with pytest.raises(FugueConfigError) as exc_info:
+    with pytest.raises(RaglineConfigError) as exc_info:
         RAG(cfg)
     msg = str(exc_info.value)
     assert "nonexistent_r" in msg
@@ -146,11 +146,11 @@ def test_fail_fast_multiple_errors(tmp_path, mock_providers, clean_all_registrie
 
 
 def test_fail_fast_missing_api_key(tmp_path, mock_providers, clean_all_registries, monkeypatch) -> None:
-    """env + config 都没 OPENAI_API_KEY → 抛 FugueConfigError match OPENAI_API_KEY。"""
+    """env + config 都没 OPENAI_API_KEY → 抛 RaglineConfigError match OPENAI_API_KEY。"""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     cfg = _make_config(tmp_path)
     cfg.providers.llm_api_key = None
-    with pytest.raises(FugueConfigError, match="OPENAI_API_KEY"):
+    with pytest.raises(RaglineConfigError, match="OPENAI_API_KEY"):
         RAG(cfg)
 
 
@@ -224,7 +224,7 @@ def test_multi_instance_warning(tmp_path, mock_providers, clean_all_registries, 
     cfg = _make_config(tmp_path)
     rag1 = RAG(cfg)
     # 第二次实例化应触发 warning（因 registry 已含内置 transforms）
-    with caplog.at_level(logging.WARNING, logger="fugue.api.rag"):
+    with caplog.at_level(logging.WARNING, logger="ragline.api.rag"):
         cfg2 = _make_config(tmp_path)
         rag2 = RAG(cfg2)
     assert any("Multiple RAG instances" in r.message for r in caplog.records)
@@ -241,7 +241,7 @@ def test_bm25_bootstrap_on_existing_data(tmp_path, mock_providers, clean_all_reg
     chroma_dir = str(tmp_path / "chroma")
 
     # 第一个 RAG 实例：ingest
-    cfg1 = FugueConfig(
+    cfg1 = RaglineConfig(
         graph=GraphConfig(
             retrievers=["vector", "bm25"],
             processors=[],
@@ -254,7 +254,7 @@ def test_bm25_bootstrap_on_existing_data(tmp_path, mock_providers, clean_all_reg
     rag1.close()
 
     # 第二个 RAG 实例：重建（caplog 下触发 warning，但功能正常）
-    cfg2 = FugueConfig(
+    cfg2 = RaglineConfig(
         graph=GraphConfig(
             retrievers=["vector", "bm25"],
             processors=[],
@@ -289,7 +289,7 @@ ingest:
 
 
 def test_from_yaml_invalid_override_raises(tmp_path, mock_providers, clean_all_registries) -> None:
-    """from_yaml 传无效 override key 抛 FugueConfigError。"""
+    """from_yaml 传无效 override key 抛 RaglineConfigError。"""
     yaml_path = tmp_path / "config.yaml"
     yaml_path.write_text(
         f"""
@@ -297,7 +297,7 @@ ingest:
   persist_dir: "{tmp_path / "chroma"}"
 """
     )
-    with pytest.raises(FugueConfigError, match="dot path"):
+    with pytest.raises(RaglineConfigError, match="dot path"):
         RAG.from_yaml(yaml_path, invalid_no_separator=5)
 
 

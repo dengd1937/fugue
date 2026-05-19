@@ -1,16 +1,16 @@
-"""tests/unit/test_server/test_cli.py — fugue CLI 单元测试。"""
+"""tests/unit/test_server/test_cli.py — ragline CLI 单元测试。"""
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from fugue.server.cli import _build_parser, main
+from ragline.server.cli import _build_parser, main
 
 # argparse 解析测试 -----------------------------------------------
 
 
 def test_parser_serve_basic() -> None:
-    """fugue serve --config x.yaml --port 9000 解析正确。"""
+    """ragline serve --config x.yaml --port 9000 解析正确。"""
     parser = _build_parser()
     args = parser.parse_args(["serve", "--config", "x.yaml", "--port", "9000"])
     assert args.cmd == "serve"
@@ -60,8 +60,8 @@ def test_main_invokes_uvicorn_with_app() -> None:
     """main 调用 create_app 加载配置，然后 uvicorn.run(app, host, port, workers=1)。"""
     mock_app = MagicMock()
     with (
-        patch("fugue.server.cli.create_app", return_value=mock_app) as mock_create,
-        patch("fugue.server.cli.uvicorn") as mock_uvicorn,
+        patch("ragline.server.cli.create_app", return_value=mock_app) as mock_create,
+        patch("ragline.server.cli.uvicorn") as mock_uvicorn,
     ):
         main(["serve", "--config", "test.yaml", "--port", "9001", "--host", "0.0.0.0"])
         mock_create.assert_called_once_with("test.yaml")
@@ -81,9 +81,9 @@ def test_main_warns_about_no_auth(caplog) -> None:
 
     mock_app = MagicMock()
     with (
-        patch("fugue.server.cli.create_app", return_value=mock_app),
-        patch("fugue.server.cli.uvicorn"),
-        caplog.at_level(logging.WARNING, logger="fugue.server"),
+        patch("ragline.server.cli.create_app", return_value=mock_app),
+        patch("ragline.server.cli.uvicorn"),
+        caplog.at_level(logging.WARNING, logger="ragline.server"),
     ):
         main(["serve", "--config", "x.yaml"])
     assert any("no authentication" in r.message for r in caplog.records)
@@ -95,7 +95,10 @@ def test_main_no_args_uses_sys_argv(monkeypatch) -> None:
     import sys
 
     mock_app = MagicMock()
-    monkeypatch.setattr(sys, "argv", ["fugue", "serve", "--config", "/tmp/x.yaml"])
-    with patch("fugue.server.cli.create_app", return_value=mock_app), patch("fugue.server.cli.uvicorn") as mock_uvicorn:
+    monkeypatch.setattr(sys, "argv", ["ragline", "serve", "--config", "/tmp/x.yaml"])
+    with (
+        patch("ragline.server.cli.create_app", return_value=mock_app),
+        patch("ragline.server.cli.uvicorn") as mock_uvicorn,
+    ):
         main()
         mock_uvicorn.run.assert_called_once()

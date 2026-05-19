@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from fugue.api.types import Document
+from ragline.api.types import Document
 
 # ===== Fixtures =====
 
@@ -18,7 +18,7 @@ def mock_llm():
 
 @pytest.fixture
 def clean_generator_registry():
-    from fugue.registry import generator_registry
+    from ragline.registry import generator_registry
 
     saved = {n: generator_registry.get(n) for n in generator_registry.names()}
     for n in list(generator_registry.names()):
@@ -38,7 +38,7 @@ def make_doc(doc_id: str, content: str, score: float = 0.9, source: str = "vecto
 
 
 def test_basic_generator_prompt_content(mock_llm):
-    from fugue.handlers.generators.basic import make_basic_generator
+    from ragline.handlers.generators.basic import make_basic_generator
 
     gen = make_basic_generator(mock_llm)
     docs = [make_doc("d1", "文档内容 A")]
@@ -59,7 +59,7 @@ def test_basic_generator_prompt_content(mock_llm):
 
 
 def test_citation_generator_prompt_has_numbers(mock_llm):
-    from fugue.handlers.generators.citation import make_citation_generator
+    from ragline.handlers.generators.citation import make_citation_generator
 
     gen = make_citation_generator(mock_llm)
     docs = [make_doc("d1", "A"), make_doc("d2", "B"), make_doc("d3", "C")]
@@ -77,7 +77,7 @@ def test_citation_generator_prompt_has_numbers(mock_llm):
 
 
 def test_basic_generator_empty_docs(mock_llm):
-    from fugue.handlers.generators.basic import make_basic_generator
+    from ragline.handlers.generators.basic import make_basic_generator
 
     gen = make_basic_generator(mock_llm)
     gen("q", [], temperature=0.7)
@@ -92,7 +92,7 @@ def test_basic_generator_empty_docs(mock_llm):
 
 
 def test_citation_generator_empty_docs(mock_llm):
-    from fugue.handlers.generators.citation import make_citation_generator
+    from ragline.handlers.generators.citation import make_citation_generator
 
     gen = make_citation_generator(mock_llm)
     gen("q", [], 0.7)
@@ -110,7 +110,7 @@ def test_citation_generator_empty_docs(mock_llm):
 
 
 def test_basic_generator_temperature_passthrough(mock_llm):
-    from fugue.handlers.generators.basic import make_basic_generator
+    from ragline.handlers.generators.basic import make_basic_generator
 
     gen = make_basic_generator(mock_llm)
     docs = [make_doc("d1", "content")]
@@ -124,7 +124,7 @@ def test_basic_generator_temperature_passthrough(mock_llm):
 
 
 def test_citation_generator_temperature_passthrough(mock_llm):
-    from fugue.handlers.generators.citation import make_citation_generator
+    from ragline.handlers.generators.citation import make_citation_generator
 
     gen = make_citation_generator(mock_llm)
     docs = [make_doc("d1", "content")]
@@ -138,7 +138,7 @@ def test_citation_generator_temperature_passthrough(mock_llm):
 
 
 def test_register_generators_registers_both(mock_llm, clean_generator_registry):
-    from fugue.handlers.generators import register_generators
+    from ragline.handlers.generators import register_generators
 
     register_generators(mock_llm)
 
@@ -150,7 +150,7 @@ def test_register_generators_registers_both(mock_llm, clean_generator_registry):
 
 
 def test_basic_generator_multiple_docs_context(mock_llm):
-    from fugue.handlers.generators.basic import make_basic_generator
+    from ragline.handlers.generators.basic import make_basic_generator
 
     gen = make_basic_generator(mock_llm)
     docs = [make_doc("d1", "A"), make_doc("d2", "B"), make_doc("d3", "C")]
@@ -166,7 +166,7 @@ def test_basic_generator_multiple_docs_context(mock_llm):
 
 
 def test_basic_prompt_template_snapshot(snapshot):
-    from fugue.handlers.generators.basic import BASIC_PROMPT_TEMPLATE
+    from ragline.handlers.generators.basic import BASIC_PROMPT_TEMPLATE
 
     rendered = BASIC_PROMPT_TEMPLATE.format(context="测试上下文", query="测试查询")
     assert rendered == snapshot
@@ -176,7 +176,7 @@ def test_basic_prompt_template_snapshot(snapshot):
 
 
 def test_citation_prompt_template_snapshot(snapshot):
-    from fugue.handlers.generators.citation import CITATION_PROMPT_TEMPLATE
+    from ragline.handlers.generators.citation import CITATION_PROMPT_TEMPLATE
 
     rendered = CITATION_PROMPT_TEMPLATE.format(context="[1] 测试", query="测试查询")
     assert rendered == snapshot

@@ -1,10 +1,10 @@
 """tests/unit/test_engine/test_nodes_grade_fallback.py — grade + fallback 节点测试。"""
 
-import fugue.handlers.graders  # noqa: F401  — 触发 score grader 自动注册
-from fugue.api.types import Document
-from fugue.engine.nodes.grade import grade, route_after_grade
-from fugue.engine.nodes.prepare_fallback import prepare_fallback
-from fugue.engine.state import RAGState
+import ragline.handlers.graders  # noqa: F401  — 触发 score grader 自动注册
+from ragline.api.types import Document
+from ragline.engine.nodes.grade import grade, route_after_grade
+from ragline.engine.nodes.prepare_fallback import prepare_fallback
+from ragline.engine.state import RAGState
 
 
 def _doc(source: str, doc_id: str, score: float = 0.9) -> Document:

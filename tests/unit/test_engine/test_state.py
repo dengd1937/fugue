@@ -1,7 +1,7 @@
 """tests/unit/test_engine/test_state.py — RAGState 与 merge_docs 测试。"""
 
-from fugue.api.types import Document
-from fugue.engine.state import Overwrite, RAGState, RetrieveInput, merge_docs
+from ragline.api.types import Document
+from ragline.engine.state import Overwrite, RAGState, RetrieveInput, merge_docs
 
 
 def _doc(source: str, doc_id: str, content: str = "x") -> Document:
