@@ -3,7 +3,6 @@
 import logging
 from unittest.mock import MagicMock
 
-import pytest
 from langgraph.types import Command, Send
 
 from ragline.api.types import Document, TransformResult
@@ -11,34 +10,6 @@ from ragline.engine.nodes.query_transform import query_transform
 from ragline.engine.nodes.retrieve import retrieve
 from ragline.engine.state import Overwrite, RAGState
 from ragline.registry import retriever_registry, transform_registry
-
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def clean_transform_registry():
-    saved = {n: transform_registry.get(n) for n in transform_registry.names()}
-    for n in list(transform_registry.names()):
-        transform_registry.unregister(n)
-    yield transform_registry
-    for n in list(transform_registry.names()):
-        transform_registry.unregister(n)
-    for n, fn in saved.items():
-        transform_registry.register(n, fn)
-
-
-@pytest.fixture
-def clean_retriever_registry():
-    saved = {n: retriever_registry.get(n) for n in retriever_registry.names()}
-    for n in list(retriever_registry.names()):
-        retriever_registry.unregister(n)
-    yield retriever_registry
-    for n in list(retriever_registry.names()):
-        retriever_registry.unregister(n)
-    for n, fn in saved.items():
-        retriever_registry.register(n, fn)
 
 
 def _initial_state(query: str = "原问题", source: str = "kb") -> RAGState:
@@ -61,7 +32,7 @@ def _initial_state(query: str = "原问题", source: str = "kb") -> RAGState:
 # ---------------------------------------------------------------------------
 
 
-def test_query_transform_basic_fanout(clean_transform_registry) -> None:
+def test_query_transform_basic_fanout(isolated_registries_fx) -> None:
     """transforms=['rewrite'] + n=2 + retrievers=['vector']
     → 3 queries × 1 retriever = 3 Send，原 query 在第 0 位。"""
     transform_registry.register("rewrite", lambda q, n: ["q1", "q2"])
@@ -91,7 +62,7 @@ def test_query_transform_basic_fanout(clean_transform_registry) -> None:
         assert s.node == "retrieve"
 
 
-def test_query_transform_dedup(clean_transform_registry) -> None:
+def test_query_transform_dedup(isolated_registries_fx) -> None:
     """transforms 产出重复 query 被去重保留首次。"""
     transform_registry.register("rewrite", lambda q, n: ["原问题", "q1", "q1"])
     config = {
@@ -106,7 +77,7 @@ def test_query_transform_dedup(clean_transform_registry) -> None:
     assert cmd.update["rewritten_queries"] == ["原问题", "q1"]
 
 
-def test_query_transform_max_queries_truncation(clean_transform_registry) -> None:
+def test_query_transform_max_queries_truncation(isolated_registries_fx) -> None:
     """all_queries 超过 max_queries 时截断。"""
     transform_registry.register("rewrite", lambda q, n: [f"q{i}" for i in range(20)])
     config = {
@@ -121,7 +92,7 @@ def test_query_transform_max_queries_truncation(clean_transform_registry) -> Non
     assert len(cmd.update["rewritten_queries"]) == 5
 
 
-def test_query_transform_fallback_single_source(clean_transform_registry) -> None:
+def test_query_transform_fallback_single_source(isolated_registries_fx) -> None:
     """state.source != 'kb' 时只用 [source] 作 retriever_names。"""
     transform_registry.register("rewrite", lambda q, n: ["q1"])
     config = {
@@ -139,7 +110,7 @@ def test_query_transform_fallback_single_source(clean_transform_registry) -> Non
 
 
 def test_query_transform_transform_result_with_metadata_filter(
-    clean_transform_registry,
+    isolated_registries_fx,
 ) -> None:
     """TransformResult 携带的 metadata_filter 被写入对应 query 的 Send payload。"""
     transform_registry.register(
@@ -163,7 +134,7 @@ def test_query_transform_transform_result_with_metadata_filter(
     assert original.arg["metadata_filter"] is None
 
 
-def test_query_transform_documents_overwrite_sentinel(clean_transform_registry) -> None:
+def test_query_transform_documents_overwrite_sentinel(isolated_registries_fx) -> None:
     """Command.update['documents'] 是 Overwrite([])。"""
     transform_registry.register("rewrite", lambda q, n: [])
     config = {"configurable": {"transforms": ["rewrite"], "n_rewrites": 1, "retrievers": ["vector"]}}
@@ -178,7 +149,7 @@ def test_query_transform_documents_overwrite_sentinel(clean_transform_registry) 
 # ---------------------------------------------------------------------------
 
 
-def test_retrieve_success_sets_source(clean_retriever_registry) -> None:
+def test_retrieve_success_sets_source(isolated_registries_fx) -> None:
     mock_fn = MagicMock(
         return_value=[
             Document(doc_id="d1", content="x", score=0.9, source="raw", metadata={}),
@@ -198,7 +169,7 @@ def test_retrieve_success_sets_source(clean_retriever_registry) -> None:
     assert all(d["source"] == "vector" for d in result["documents"])
 
 
-def test_retrieve_exception_best_effort(clean_retriever_registry, caplog) -> None:
+def test_retrieve_exception_best_effort(isolated_registries_fx, caplog) -> None:
     """retriever 抛错时 best-effort 返回空 documents 并 log.error。"""
     mock_fn = MagicMock(side_effect=RuntimeError("simulated"))
     retriever_registry.register("vector", mock_fn)
@@ -215,7 +186,7 @@ def test_retrieve_exception_best_effort(clean_retriever_registry, caplog) -> Non
     assert any("simulated" in r.getMessage() for r in caplog.records)
 
 
-def test_retrieve_metadata_filter_passthrough(clean_retriever_registry) -> None:
+def test_retrieve_metadata_filter_passthrough(isolated_registries_fx) -> None:
     mock_fn = MagicMock(return_value=[])
     retriever_registry.register("vector", mock_fn)
     retrieve(
