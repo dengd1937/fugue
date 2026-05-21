@@ -15,21 +15,6 @@ def mock_llm():
     return MagicMock()
 
 
-@pytest.fixture
-def clean_transform_registry():
-    """清空再 yield，结束时再清空（防止污染其他测试）。"""
-    from ragline.registry import transform_registry
-
-    saved = {n: transform_registry.get(n) for n in transform_registry.names()}
-    for n in list(transform_registry.names()):
-        transform_registry.unregister(n)
-    yield transform_registry
-    for n in list(transform_registry.names()):
-        transform_registry.unregister(n)
-    for n, fn in saved.items():
-        transform_registry.register(n, fn)
-
-
 # ===== 测试 1: rewrite_fn 解析换行 =====
 
 
@@ -80,13 +65,14 @@ def test_empty_queries_returns_empty(mock_llm):
 # ===== 测试 5: register_transforms 注册 =====
 
 
-def test_register_transforms_registers_all(mock_llm, clean_transform_registry):
+def test_register_transforms_registers_all(mock_llm, isolated_registries_fx):
     from ragline.handlers.transforms import register_transforms
+    from ragline.registry import transform_registry
 
     register_transforms(mock_llm)
-    assert clean_transform_registry.has("rewrite")
-    assert clean_transform_registry.has("hyde")
-    assert clean_transform_registry.has("step_back")
+    assert transform_registry.has("rewrite")
+    assert transform_registry.has("hyde")
+    assert transform_registry.has("step_back")
 
 
 # ===== 测试 6: run_transform_branch（原子）=====

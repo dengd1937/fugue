@@ -27,21 +27,6 @@ def mock_bm25():
     return MagicMock()
 
 
-@pytest.fixture
-def clean_retriever_registry():
-    """清空再 yield，结束时再清空（防止污染其他测试）。"""
-    from ragline.registry import retriever_registry
-
-    saved = {n: retriever_registry.get(n) for n in retriever_registry.names()}
-    for n in list(retriever_registry.names()):
-        retriever_registry.unregister(n)
-    yield retriever_registry
-    for n in list(retriever_registry.names()):
-        retriever_registry.unregister(n)
-    for n, fn in saved.items():
-        retriever_registry.register(n, fn)
-
-
 # ===== 测试 1: vector_search 基础 =====
 
 
@@ -123,13 +108,14 @@ def test_bm25_search_ignores_metadata_filter(mock_bm25):
 # ===== 测试 5: register_retrievers 注册 =====
 
 
-def test_register_retrievers_registers_all(mock_vector_store, mock_embedding, mock_bm25, clean_retriever_registry):
+def test_register_retrievers_registers_all(mock_vector_store, mock_embedding, mock_bm25, isolated_registries_fx):
     from ragline.handlers.retrievers import register_retrievers
+    from ragline.registry import retriever_registry
 
     register_retrievers(mock_vector_store, mock_embedding, mock_bm25)
 
-    assert clean_retriever_registry.has("vector")
-    assert clean_retriever_registry.has("bm25")
+    assert retriever_registry.has("vector")
+    assert retriever_registry.has("bm25")
 
 
 # ===== 测试 6: source 字段重写（不原地修改）=====
@@ -173,10 +159,9 @@ def test_vector_search_overrides_source_field(mock_vector_store, mock_embedding)
 # ===== 测试 8: register_retrievers 注册的函数可调用 =====
 
 
-def test_registered_vector_retriever_is_callable(
-    mock_vector_store, mock_embedding, mock_bm25, clean_retriever_registry
-):
+def test_registered_vector_retriever_is_callable(mock_vector_store, mock_embedding, mock_bm25, isolated_registries_fx):
     from ragline.handlers.retrievers import register_retrievers
+    from ragline.registry import retriever_registry
 
     mock_embedding.embed.return_value = [[0.1, 0.2, 0.3]]
     mock_vector_store.similarity_search.return_value = [
@@ -185,7 +170,7 @@ def test_registered_vector_retriever_is_callable(
 
     register_retrievers(mock_vector_store, mock_embedding, mock_bm25)
 
-    vector_retriever = clean_retriever_registry.get("vector")
+    vector_retriever = retriever_registry.get("vector")
     result = vector_retriever("test query")
 
     assert isinstance(result, list)

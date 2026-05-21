@@ -10,20 +10,6 @@ from ragline.api.types import Document
 
 
 @pytest.fixture
-def clean_processor_registry():
-    from ragline.registry import processor_registry
-
-    saved = {n: processor_registry.get(n) for n in processor_registry.names()}
-    for n in list(processor_registry.names()):
-        processor_registry.unregister(n)
-    yield processor_registry
-    for n in list(processor_registry.names()):
-        processor_registry.unregister(n)
-    for n, fn in saved.items():
-        processor_registry.register(n, fn)
-
-
-@pytest.fixture
 def mock_reranker():
     return MagicMock()
 
@@ -177,14 +163,15 @@ def test_rerank_top_k_passed_through(mock_reranker):
 # ===== 测试 9: register_processors 注册 =====
 
 
-def test_register_processors_registers_all(mock_reranker, clean_processor_registry):
+def test_register_processors_registers_all(mock_reranker, isolated_registries_fx):
     """register_processors 后 rrf 和 rerank 都在 registry 中。"""
     from ragline.handlers.processors import register_processors
+    from ragline.registry import processor_registry
 
     register_processors(mock_reranker)
 
-    assert clean_processor_registry.has("rrf")
-    assert clean_processor_registry.has("rerank")
+    assert processor_registry.has("rrf")
+    assert processor_registry.has("rerank")
 
 
 # ===== 测试 10: rrf rank 计算正确性 =====
