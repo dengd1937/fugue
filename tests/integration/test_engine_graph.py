@@ -1,9 +1,6 @@
 """tests/integration/test_engine_graph.py — 整图集成测试（mock providers）。"""
 
-from collections.abc import Callable
 from typing import Any
-
-import pytest
 
 from ragline.api.types import Document
 from ragline.config import GraphConfig
@@ -21,30 +18,7 @@ def _doc(source: str, doc_id: str, score: float = 0.9, content: str = "x") -> Do
     return Document(doc_id=doc_id, content=content, score=score, source=source, metadata={})
 
 
-@pytest.fixture
-def clean_registries():
-    """清空所有 registry，yield 后恢复（避免污染其他测试）。"""
-    saves: dict[str, dict[str, Callable[..., Any]]] = {}
-    registries = {
-        "transform": transform_registry,
-        "retriever": retriever_registry,
-        "processor": processor_registry,
-        "grader": grader_registry,
-        "generator": generator_registry,
-    }
-    for name, reg in registries.items():
-        saves[name] = {n: reg.get(n) for n in reg.names()}
-        for n in list(reg.names()):
-            reg.unregister(n)
-    yield
-    for name, reg in registries.items():
-        for n in list(reg.names()):
-            reg.unregister(n)
-        for n, fn in saves[name].items():
-            reg.register(n, fn)
-
-
-def _register_minimal(clean_registries: Any) -> None:
+def _register_minimal() -> None:
     """注册最小可用 handlers（mock 各 transform / retriever / grader / processor / generator）。"""
     transform_registry.register("rewrite", lambda q, n: [f"rewrite_{i}" for i in range(n)])
     retriever_registry.register(
@@ -112,9 +86,9 @@ def _config(**overrides: Any) -> dict[str, Any]:
 # 1. 完整跑通 ----------------------------------------------------------
 
 
-def test_graph_end_to_end_basic(clean_registries) -> None:
+def test_graph_end_to_end_basic(isolated_registries_fx) -> None:
     """构建图 + 注册 mock handlers + invoke，验证返回 state 含 answer 非空。"""
-    _register_minimal(clean_registries)
+    _register_minimal()
     graph = build_rag_graph()
     result = graph.invoke(_make_initial_state(), _config())
     assert result["answer"]
@@ -124,9 +98,9 @@ def test_graph_end_to_end_basic(clean_registries) -> None:
 # 2. 多 retriever 合并 -----------------------------------------------
 
 
-def test_multi_retrievers_merge(clean_registries) -> None:
+def test_multi_retrievers_merge(isolated_registries_fx) -> None:
     """retrievers=['vector','bm25'] 各返回 docs，grade 时 documents 含两组 source。"""
-    _register_minimal(clean_registries)
+    _register_minimal()
     graph = build_rag_graph()
     result = graph.invoke(
         _make_initial_state(),
@@ -145,9 +119,9 @@ def test_multi_retrievers_merge(clean_registries) -> None:
 # 3. fallback 闭环 ----------------------------------------------------
 
 
-def test_fallback_loop(clean_registries) -> None:
+def test_fallback_loop(isolated_registries_fx) -> None:
     """grade 第一次 insufficient → prepare_fallback → 切到 web → 第二次 sufficient。"""
-    _register_minimal(clean_registries)
+    _register_minimal()
     # 注册 web retriever
     retriever_registry.register("web", lambda query, metadata_filter=None: [_doc("web", f"w_{query[:20]}", score=0.95)])
 
@@ -178,9 +152,9 @@ def test_fallback_loop(clean_registries) -> None:
 # 4. Overwrite([]) 重置语义 -------------------------------------------
 
 
-def test_overwrite_resets_documents_across_fallback(clean_registries) -> None:
+def test_overwrite_resets_documents_across_fallback(isolated_registries_fx) -> None:
     """fallback 第二轮 retrieve 后 documents 不含第一轮（Overwrite([]) 工作）。"""
-    _register_minimal(clean_registries)
+    _register_minimal()
     retriever_registry.register("web", lambda query, metadata_filter=None: [_doc("web", f"w_{query[:20]}", score=0.95)])
 
     call_count = {"n": 0}
@@ -209,13 +183,13 @@ def test_overwrite_resets_documents_across_fallback(clean_registries) -> None:
 # 5. 嵌套 transforms 端到端 -------------------------------------------
 
 
-def test_nested_transforms_end_to_end(clean_registries) -> None:
+def test_nested_transforms_end_to_end(isolated_registries_fx) -> None:
     """transforms=['hyde', ['step_back', 'rewrite']] 端到端跑通。
 
     手算扇出: original(1) + hyde(2) + step_back(2)→rewrite(每个 2 = 总 4) = 7 queries
     × 1 retriever = 7 次 retrieve 调用（去重前；可能因 mock 实现而少）
     """
-    _register_minimal(clean_registries)
+    _register_minimal()
     transform_registry.register("hyde", lambda q, n: [f"hyde_{i}" for i in range(n)])
     transform_registry.register("step_back", lambda q, n: [f"sb_{i}" for i in range(n)])
 
@@ -246,7 +220,7 @@ def test_nested_transforms_end_to_end(clean_registries) -> None:
 # 6. Overwrite reducer 锁定语义（反面验证） -------------------------
 
 
-def test_reducer_without_overwrite_accumulates(clean_registries) -> None:
+def test_reducer_without_overwrite_accumulates(isolated_registries_fx) -> None:
     """反面对比：直接更新 documents（不通过 Overwrite）→ 累加而非覆盖。
 
     用 merge_docs 直接调用验证 reducer 在普通 list 输入下的累加行为。
