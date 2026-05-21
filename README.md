@@ -71,6 +71,60 @@ with RAG.from_yaml("ragline.yaml") as rag:
 
 ---
 
+## 在外部项目中使用 ragline
+
+Ragline 当前尚未发布到 PyPI，但可以通过以下三种方式在外部项目中引用：
+
+**方式一：本地路径 editable 安装（适合本地开发调试）**
+
+```bash
+uv add --editable "/path/to/ragline[all]"
+```
+
+**方式二：通过 Git URL 安装（适合 CI/CD 或团队共享环境）**
+
+```bash
+uv add "ragline @ git+https://github.com/<you>/ragline.git@main"
+```
+
+**方式三：uv workspace（适合 monorepo 场景）**
+
+在外部项目的 `pyproject.toml` 中配置 workspace，将 ragline 作为本地成员包引用，uv 会自动处理依赖解析。
+
+完整可运行示例请参考 [`examples/quickstart/`](./examples/quickstart/) 目录，其中包含最小化的消费者项目结构和配置文件。
+
+---
+
+## 在测试中使用 ragline
+
+Ragline 提供 `ragline.testing` 模块，包含以下测试辅助工具：
+
+```python
+from ragline.testing import FakeLLM, FakeEmbedding, isolated_registries, mock_rag_providers
+```
+
+- `FakeLLM` / `FakeEmbedding`：可配置返回值的假实现，无需真实 API Key
+- `isolated_registries`：上下文管理器，在测试期间隔离全局注册表，防止测试间污染
+- `mock_rag_providers`：组合 context manager，同时 patch LLM 和 Embedding 提供者
+
+**最小 pytest 示例：**
+
+```python
+def test_my_consumer():
+    with isolated_registries(), mock_rag_providers() as (llm, _):
+        llm.answer = "expected answer"
+        from ragline import RAG, RaglineConfig
+        cfg = RaglineConfig(...)
+        cfg.providers.llm_api_key = "fake"
+        with RAG(cfg) as rag:
+            result = rag.query("...")
+            assert result.answer == "expected answer"
+```
+
+**注意**：RAG 是同进程单例，同一进程内只能存在一个实例。在测试中使用 `isolated_registries()` 可以在每个测试之间重置注册表状态，但仍建议每个测试用例独立创建和销毁 `RAG` 实例，避免状态泄漏。详见 [Status & Compatibility](#status--compatibility) 节中的「MVP 单实例限制」说明。
+
+---
+
 ## Why Ragline?
 
 ### 配置即行为（Configuration-as-behavior）
