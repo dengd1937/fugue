@@ -288,6 +288,32 @@ tests/unit/test_*.py, tests/integration/test_*.py
 - 既有 e2e 测试（4 个）一行不动，跑通即说明 public API 没破
 - `.importlinter` 检查 `ragline.testing` 不引入对 `ragline.engine` 的 import
 
+### Implementation Deviations
+
+#### [2026-05-22] — `mock_rag_providers` 内部额外 patch `ChromaVectorStore` 与 `OPENAI_API_KEY`
+**偏差章节**：组件接口（`mock_rag_providers` 行为契约）
+**原方案**：spec 仅要求 patch `ragline.api.rag.LLMClient` 与 `ragline.api.rag.EmbeddingClient`，让构造器返回 fake；不要求 patch vector store
+**实际实现**：除两个构造器 patch 外，还 `patch("ragline.api.rag.ChromaVectorStore", return_value=MagicMock())` + `patch.dict(os.environ, {"OPENAI_API_KEY": "fake-key-for-testing"})`
+**原因**：若不 patch `ChromaVectorStore`，`RAG()` 实例化时会真实连接 Chroma DB（产生磁盘 I/O 或失败）；若不注入 env，`RaglineConfig._validate_config` fail-fast 会先于 patch 触发。两者是让 `RAG()` 在无任何外部副作用下完成 init 的必要前提，与 spec 的"使 RAG() 用 fake"意图一致，不破坏 API 契约。
+
+#### [2026-05-22] — `mock_rag_providers` 内部自带 `isolated_registries()`
+**偏差章节**：组件接口（`mock_rag_providers` 文档语义）
+**原方案**：spec line 152 注释为 "Composes with isolated_registries() — use both for full RAG() isolation"，暗示两者分开调用
+**实际实现**：`mock_rag_providers` 实现内部已 enter `isolated_registries()`；消费者再外层调用会形成嵌套（嵌套语义在 `test_testing.py` 场景 9 已验证安全）
+**原因**：让 `mock_rag_providers` 单独使用时就能提供完整 RAG() 隔离，避免外部消费者忘 enter `isolated_registries` 而出现 registry 污染。`examples/quickstart/consumer_minimal.py` 仍按 spec 字面要求显式 `with isolated_registries(), mock_rag_providers() as (llm, _):`，作教学示范。
+
+#### [2026-05-22] — `consumer_minimal.py` ingest 用 glob 而非目录
+**偏差章节**：架构总览中的 demo 骨架
+**原方案**：spec line 179 写 `rag.ingest(Path(__file__).parent / "docs", show_progress=False)`，传目录路径
+**实际实现**：改为 `rag.ingest(docs_dir / "*.md", show_progress=False)`，传 glob 模式
+**原因**：实际跑脚本发现 `IngestPipeline._expand_sources` 仅支持文件路径与 glob 字符串，不展开目录。改 glob 是最小变更让 demo 跑通；不动 `_expand_sources` 是因为它属于 ragline 既有行为，超出本 spec 范围。
+
+#### [2026-05-22] — `test_bm25_bootstrap_on_existing_data` 用内联 patch 而非顶层 fixture
+**偏差章节**：测试策略（Task 2 重构后的验证）
+**原方案**：spec 隐含 Task 2 所有测试统一改用 `ragline.testing` 顶层 fixture
+**实际实现**：该测试仅用 `isolated_registries_fx`，并在测试体内手动 `patch("ragline.api.rag.LLMClient")` + `patch("ragline.api.rag.EmbeddingClient")`，**保留真实 ChromaVectorStore**
+**原因**：该测试核心语义是验证"跨实例 BM25 bootstrap 从真实持久化 Chroma 读取 chunks"。`mock_rag_providers_fx` 因偏差 1 会 patch 掉 ChromaVectorStore，破坏测试意图。内联 patch 是保持测试语义的必要 workaround，仅 1/14 测试受影响。
+
 ---
 
 ## 实施 Task 拆分
