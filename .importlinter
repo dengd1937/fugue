@@ -15,6 +15,7 @@ source_modules =
     ragline.handlers
     ragline.providers
     ragline.server
+    ragline.testing
 forbidden_modules =
     langgraph
     langchain_core
@@ -23,3 +24,11 @@ forbidden_modules =
 # the forbidden checker does not trace through this edge into langgraph/langchain_core.
 ignore_imports =
     ragline.api.rag -> ragline.engine.graph
+
+[importlinter:contract:testing-no-engine]
+name = ragline.testing must not import ragline.engine
+type = forbidden
+source_modules =
+    ragline.testing
+forbidden_modules =
+    ragline.engine
