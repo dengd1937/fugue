@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from ragline.api.types import Document
+from ragline.registry import generator_registry
 
 # ===== Fixtures =====
 
@@ -14,20 +15,6 @@ def mock_llm():
     mock = MagicMock()
     mock.complete.return_value = "AI answer"
     return mock
-
-
-@pytest.fixture
-def clean_generator_registry():
-    from ragline.registry import generator_registry
-
-    saved = {n: generator_registry.get(n) for n in generator_registry.names()}
-    for n in list(generator_registry.names()):
-        generator_registry.unregister(n)
-    yield generator_registry
-    for n in list(generator_registry.names()):
-        generator_registry.unregister(n)
-    for n, fn in saved.items():
-        generator_registry.register(n, fn)
 
 
 def make_doc(doc_id: str, content: str, score: float = 0.9, source: str = "vector") -> Document:
@@ -137,13 +124,13 @@ def test_citation_generator_temperature_passthrough(mock_llm):
 # ===== 测试 7: register_generators 注册 =====
 
 
-def test_register_generators_registers_both(mock_llm, clean_generator_registry):
+def test_register_generators_registers_both(mock_llm, isolated_registries_fx):
     from ragline.handlers.generators import register_generators
 
     register_generators(mock_llm)
 
-    assert clean_generator_registry.has("basic")
-    assert clean_generator_registry.has("citation")
+    assert generator_registry.has("basic")
+    assert generator_registry.has("citation")
 
 
 # ===== 测试 8: 多 doc 合并 context（basic）=====

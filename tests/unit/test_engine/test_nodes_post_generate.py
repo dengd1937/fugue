@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from ragline.api.types import Document
 from ragline.engine.nodes.generate import generate
 from ragline.engine.nodes.post_process import MAX_DOCS_BEFORE_PROCESS, post_process
@@ -36,34 +34,10 @@ def _state(
     )
 
 
-@pytest.fixture
-def clean_processor_registry():
-    saved = {n: processor_registry.get(n) for n in processor_registry.names()}
-    for n in list(processor_registry.names()):
-        processor_registry.unregister(n)
-    yield processor_registry
-    for n in list(processor_registry.names()):
-        processor_registry.unregister(n)
-    for n, fn in saved.items():
-        processor_registry.register(n, fn)
-
-
-@pytest.fixture
-def clean_generator_registry():
-    saved = {n: generator_registry.get(n) for n in generator_registry.names()}
-    for n in list(generator_registry.names()):
-        generator_registry.unregister(n)
-    yield generator_registry
-    for n in list(generator_registry.names()):
-        generator_registry.unregister(n)
-    for n, fn in saved.items():
-        generator_registry.register(n, fn)
-
-
 # post_process 测试 -----------------------------------------------------
 
 
-def test_post_process_cross_round_merge_dedup(clean_processor_registry) -> None:
+def test_post_process_cross_round_merge_dedup(isolated_registries_fx) -> None:
     """state.documents=[D1] + retrieval_history=[[D2], [D1]]，
     history[:-1]=[D2] 合并后去重输出 [D1, D2]，processor 不变."""
     d1 = _doc("vector", "1")
@@ -87,7 +61,7 @@ def test_post_process_cross_round_merge_dedup(clean_processor_registry) -> None:
     assert keys == {("vector", "1"), ("bm25", "2")}
 
 
-def test_post_process_chained_processors(clean_processor_registry) -> None:
+def test_post_process_chained_processors(isolated_registries_fx) -> None:
     """cfg.processors=['p1', 'p2']，p1 输出喂 p2，按顺序调用。"""
     d1 = _doc("vector", "1")
     d2 = _doc("vector", "2")
@@ -110,7 +84,7 @@ def test_post_process_chained_processors(clean_processor_registry) -> None:
     assert result["ranked_documents"] == p2_out
 
 
-def test_post_process_top_k_truncation(clean_processor_registry) -> None:
+def test_post_process_top_k_truncation(isolated_registries_fx) -> None:
     """processor 返回 10 个 top_k=3 时截断到 3."""
     docs = [_doc("v", str(i), score=1.0 - i * 0.1) for i in range(10)]
     identity = MagicMock(side_effect=lambda d, q, k, **kw: d)
@@ -122,7 +96,7 @@ def test_post_process_top_k_truncation(clean_processor_registry) -> None:
     assert len(result["ranked_documents"]) == 3
 
 
-def test_post_process_empty_documents(clean_processor_registry) -> None:
+def test_post_process_empty_documents(isolated_registries_fx) -> None:
     """无 documents 时返回 {ranked_documents: []}."""
     identity = MagicMock(side_effect=lambda d, q, k, **kw: d)
     processor_registry.register("identity", identity)
@@ -133,7 +107,7 @@ def test_post_process_empty_documents(clean_processor_registry) -> None:
     assert result["ranked_documents"] == []
 
 
-def test_post_process_kwargs_passthrough(clean_processor_registry) -> None:
+def test_post_process_kwargs_passthrough(isolated_registries_fx) -> None:
     """调用 processor 时 kwargs 含 retriever_weights/score_normalizers/top_k."""
     identity = MagicMock(side_effect=lambda d, q, k, **kw: d)
     processor_registry.register("identity", identity)
@@ -155,7 +129,7 @@ def test_post_process_kwargs_passthrough(clean_processor_registry) -> None:
     assert call.kwargs["score_normalizers"] == {"bm25": 20.0}
 
 
-def test_post_process_defensive_upper_bound(clean_processor_registry) -> None:
+def test_post_process_defensive_upper_bound(isolated_registries_fx) -> None:
     """合并后 > MAX_DOCS_BEFORE_PROCESS 时按 score 降序截断。"""
     # 构造 2000 个 doc，score 递减
     docs = [_doc("v", str(i), score=1.0 - i * 0.0001) for i in range(2000)]
@@ -177,7 +151,7 @@ def test_post_process_defensive_upper_bound(clean_processor_registry) -> None:
 # generate 测试 --------------------------------------------------------
 
 
-def test_generate_basic_mode(clean_generator_registry) -> None:
+def test_generate_basic_mode(isolated_registries_fx) -> None:
     """gen_mode='basic' 时调 basic generator。"""
     mock_gen = MagicMock(return_value="basic answer")
     generator_registry.register("basic", mock_gen)
@@ -189,7 +163,7 @@ def test_generate_basic_mode(clean_generator_registry) -> None:
     mock_gen.assert_called_once()
 
 
-def test_generate_citation_mode(clean_generator_registry) -> None:
+def test_generate_citation_mode(isolated_registries_fx) -> None:
     """gen_mode='citation' 时调 citation generator。"""
     mock_gen = MagicMock(return_value="citation answer [1]")
     generator_registry.register("citation", mock_gen)
@@ -200,7 +174,7 @@ def test_generate_citation_mode(clean_generator_registry) -> None:
     assert result == {"answer": "citation answer [1]"}
 
 
-def test_generate_temperature_passthrough(clean_generator_registry) -> None:
+def test_generate_temperature_passthrough(isolated_registries_fx) -> None:
     mock_gen = MagicMock(return_value="x")
     generator_registry.register("basic", mock_gen)
 

@@ -2,28 +2,8 @@
 
 from pathlib import Path
 
-import pytest
-
 from ragline.api.types import ParsedDocument
-
-# ---------------------------------------------------------------------------
-# clean_chunker_registry fixture
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def clean_chunker_registry():
-    from ragline.registry import chunker_registry
-
-    saved = {n: chunker_registry.get(n) for n in chunker_registry.names()}
-    for n in list(chunker_registry.names()):
-        chunker_registry.unregister(n)
-    yield chunker_registry
-    for n in list(chunker_registry.names()):
-        chunker_registry.unregister(n)
-    for n, fn in saved.items():
-        chunker_registry.register(n, fn)
-
+from ragline.registry import chunker_registry
 
 # ---------------------------------------------------------------------------
 # 辅助函数
@@ -228,13 +208,13 @@ def test_empty_content_parsed_document() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_register_chunkers_registers_recursive(clean_chunker_registry) -> None:
+def test_register_chunkers_registers_recursive(isolated_registries_fx) -> None:
     """register_chunkers() 后 chunker_registry.has('recursive')。"""
     from ragline.handlers.chunkers import register_chunkers
 
     register_chunkers()
 
-    assert clean_chunker_registry.has("recursive")
+    assert chunker_registry.has("recursive")
 
 
 # ---------------------------------------------------------------------------

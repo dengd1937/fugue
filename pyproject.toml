@@ -51,6 +51,9 @@ ragline = "ragline.server.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/ragline"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"src/ragline/py.typed" = "ragline/py.typed"
+
 [tool.ruff]
 line-length = 120
 target-version = "py312"

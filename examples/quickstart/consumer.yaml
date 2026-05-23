@@ -1,0 +1,25 @@
+# 真实 provider 配置示例
+# 本文件演示如何通过 RAG.from_yaml() 加载配置。
+# 运行时通过环境变量提供 API key（例如：export OPENAI_API_KEY=sk-...），
+# 配置中使用 ${OPENAI_API_KEY} 占位符，ragline 会自动展开。
+
+providers:
+  llm_model: gpt-4o-mini
+  llm_api_key: ${OPENAI_API_KEY}
+  embedding_model: text-embedding-3-small
+
+graph:
+  transforms:
+    - rewrite
+  retrievers:
+    - vector
+  processors: []
+  grade_threshold: 0.5
+  gen_mode: basic
+
+ingest:
+  chunker: recursive
+  chunk_size: 512
+  chunk_overlap: 64
+  collection_name: quickstart-demo
+  persist_dir: ./.ragline

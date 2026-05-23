@@ -33,25 +33,6 @@ def sample_pdf(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 # ---------------------------------------------------------------------------
-# clean_parser_registry fixture
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def clean_parser_registry():
-    from ragline.registry import parser_registry
-
-    saved = {n: parser_registry.get(n) for n in parser_registry.names()}
-    for n in list(parser_registry.names()):
-        parser_registry.unregister(n)
-    yield parser_registry
-    for n in list(parser_registry.names()):
-        parser_registry.unregister(n)
-    for n, fn in saved.items():
-        parser_registry.register(n, fn)
-
-
-# ---------------------------------------------------------------------------
 # 测试 1: markdown_parser
 # ---------------------------------------------------------------------------
 
@@ -180,15 +161,16 @@ def test_markdown_parser_empty_file() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_register_parsers_registers_all(clean_parser_registry) -> None:
+def test_register_parsers_registers_all(isolated_registries_fx) -> None:
     from ragline.handlers.parsers import register_parsers
+    from ragline.registry import parser_registry
 
     register_parsers()
 
-    assert clean_parser_registry.has("markdown")
-    assert clean_parser_registry.has("text")
-    assert clean_parser_registry.has("pdf")
-    assert clean_parser_registry.has("auto")
+    assert parser_registry.has("markdown")
+    assert parser_registry.has("text")
+    assert parser_registry.has("pdf")
+    assert parser_registry.has("auto")
 
 
 # ---------------------------------------------------------------------------

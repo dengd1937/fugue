@@ -3,22 +3,7 @@
 import pytest
 
 from ragline.api.types import Document
-
-# ===== Fixtures =====
-
-
-@pytest.fixture
-def clean_grader_registry():
-    from ragline.registry import grader_registry
-
-    saved = {n: grader_registry.get(n) for n in grader_registry.names()}
-    for n in list(grader_registry.names()):
-        grader_registry.unregister(n)
-    yield grader_registry
-    for n in list(grader_registry.names()):
-        grader_registry.unregister(n)
-    for n, fn in saved.items():
-        grader_registry.register(n, fn)
+from ragline.registry import grader_registry
 
 
 def make_doc(doc_id: str, score: float, source: str) -> Document:
@@ -129,11 +114,11 @@ def test_score_grader_mixed_sources():
 # ===== 测试 9: register_graders 注册 =====
 
 
-def test_register_graders_registers_score(clean_grader_registry):
+def test_register_graders_registers_score(isolated_registries_fx):
     from ragline.handlers.graders import register_graders
 
     register_graders()
-    assert clean_grader_registry.has("score")
+    assert grader_registry.has("score")
 
 
 # ===== 测试 10: 边界 threshold 相等 =====
