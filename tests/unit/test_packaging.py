@@ -5,6 +5,7 @@ TDD：先写测试看 RED，再实现看 GREEN。
 
 from __future__ import annotations
 
+import subprocess
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -175,3 +176,85 @@ def test_license_line_count(license_text: str) -> None:
     lines = license_text.splitlines()
     count = len(lines)
     assert 21 <= count <= 23, f"LICENSE 行数应在 21-23 之间，实际为 {count}"
+
+
+REQUIRED_CORE_PREFIXES = [
+    "langgraph",
+    "langchain-core",
+    "openai",
+    "pydantic",
+    "pyyaml",
+    "rank-bm25",
+    "chromadb",
+]
+
+# ── 场景 15-20：transformers 迁移到 [bge] extra ───────────────────────────────
+
+
+# ── 场景 15：core deps 不含 transformers ─────────────────────────────────────
+
+
+def test_core_deps_no_transformers(project: dict[str, Any]) -> None:
+    core_deps: list[str] = project["dependencies"]
+    for dep in core_deps:
+        assert not dep.lower().startswith("transformers"), (
+            f"transformers 不应出现在 core dependencies 中，实际发现: {dep!r}"
+        )
+
+
+# ── 场景 16：bge extra 包含 transformers>=4.44.2,<5 ──────────────────────────
+
+
+def test_bge_extra_contains_transformers(pyproject: dict[str, Any]) -> None:
+    bge_deps: list[str] = pyproject["project"]["optional-dependencies"]["bge"]
+    assert any(dep.startswith("transformers>=") for dep in bge_deps), (
+        f"[bge] extra 应包含以 'transformers>=' 开头的依赖，实际内容: {bge_deps}"
+    )
+
+
+# ── 场景 17：bge extra 仍包含 FlagEmbedding>=1.2 ─────────────────────────────
+
+
+def test_bge_extra_still_has_flag_embedding(pyproject: dict[str, Any]) -> None:
+    bge_deps: list[str] = pyproject["project"]["optional-dependencies"]["bge"]
+    assert any(dep.startswith("FlagEmbedding>=1.2") for dep in bge_deps), (
+        f"[bge] extra 应仍包含 FlagEmbedding>=1.2，实际内容: {bge_deps}"
+    )
+
+
+# ── 场景 18：all extra 仍引用 ragline[server,bge,chroma,pdf] ─────────────────
+
+
+def test_all_extra_unchanged(pyproject: dict[str, Any]) -> None:
+    all_deps: list[str] = pyproject["project"]["optional-dependencies"]["all"]
+    assert "ragline[server,bge,chroma,pdf]" in all_deps, (
+        f"[all] extra 应包含 'ragline[server,bge,chroma,pdf]'，实际内容: {all_deps}"
+    )
+
+
+# ── 场景 19：core deps 仍包含所有其他必要依赖 ────────────────────────────────
+
+
+def test_core_deps_contain_required_packages(project: dict[str, Any]) -> None:
+    core_deps: list[str] = project["dependencies"]
+    for prefix in REQUIRED_CORE_PREFIXES:
+        assert any(dep.lower().startswith(prefix.lower()) for dep in core_deps), (
+            f"core dependencies 缺少以 {prefix!r} 开头的依赖"
+        )
+
+
+# ── 场景 20：uv lock --check 退出码为 0 ──────────────────────────────────────
+
+
+def test_uv_lock_check() -> None:
+    try:
+        result = subprocess.run(
+            ["uv", "lock", "--check"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except FileNotFoundError:
+        pytest.skip("uv 未安装，跳过 lock 一致性检查")
+    assert result.returncode == 0, f"uv lock --check 退出码非 0\nstdout: {result.stdout}\nstderr: {result.stderr}"

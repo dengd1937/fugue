@@ -3193,7 +3193,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "rank-bm25" },
-    { name = "transformers" },
 ]
 
 [package.optional-dependencies]
@@ -3201,10 +3200,12 @@ all = [
     { name = "fastapi" },
     { name = "flagembedding" },
     { name = "pypdf" },
+    { name = "transformers" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 bge = [
     { name = "flagembedding" },
+    { name = "transformers" },
 ]
 dev = [
     { name = "import-linter" },
@@ -3250,7 +3251,7 @@ requires-dist = [
     { name = "rank-bm25", specifier = ">=0.2.2" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
     { name = "syrupy", marker = "extra == 'dev'", specifier = ">=4.0" },
-    { name = "transformers", specifier = ">=4.44.2,<5" },
+    { name = "transformers", marker = "extra == 'bge'", specifier = ">=4.44.2,<5" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'server'", specifier = ">=0.30" },
 ]
 provides-extras = ["dev", "server", "bge", "chroma", "pdf", "all"]

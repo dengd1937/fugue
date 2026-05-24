@@ -32,7 +32,6 @@ dependencies = [
     "pyyaml>=6.0",
     "rank-bm25>=0.2.2",
     "chromadb>=0.5",
-    "transformers>=4.44.2,<5",
 ]
 
 [project.urls]
@@ -58,6 +57,7 @@ server = [
 ]
 bge = [
     "FlagEmbedding>=1.2",
+    "transformers>=4.44.2,<5",
 ]
 chroma = []
 pdf = [
