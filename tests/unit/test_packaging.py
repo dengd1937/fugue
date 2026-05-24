@@ -120,3 +120,58 @@ def test_addopts_cov_fail_under(pyproject: dict[str, Any]) -> None:
 def test_ci_cov_fail_under(ci_content: str) -> None:
     assert "--cov-fail-under=96" in ci_content
     assert "--cov-fail-under=90" not in ci_content
+
+
+# ── LICENSE 文件测试 ──────────────────────────────────────────────────────────
+
+LICENSE_PATH = ROOT / "LICENSE"
+
+
+@pytest.fixture(scope="module")
+def license_text() -> str:
+    return LICENSE_PATH.read_text(encoding="utf-8")
+
+
+# ── 场景 10：LICENSE 文件存在 ────────────────────────────────────────────────
+
+
+def test_license_file_exists() -> None:
+    assert LICENSE_PATH.exists(), "项目根目录缺少 LICENSE 文件"
+    assert LICENSE_PATH.is_file(), "LICENSE 不是普通文件"
+
+
+# ── 场景 11：LICENSE 第一行为 MIT License ────────────────────────────────────
+
+
+def test_license_first_line(license_text: str) -> None:
+    first_line = license_text.splitlines()[0]
+    assert first_line == "MIT License", f"LICENSE 第一行应为 'MIT License'，实际为 {first_line!r}"
+
+
+# ── 场景 12：LICENSE 含版权行 ────────────────────────────────────────────────
+
+
+def test_license_copyright(license_text: str) -> None:
+    assert "Copyright (c) 2026 dengdi" in license_text
+
+
+# ── 场景 13：LICENSE 含 MIT 关键短语 ─────────────────────────────────────────
+
+
+def test_license_mit_phrases(license_text: str) -> None:
+    required_phrases = [
+        "Permission is hereby granted, free of charge",
+        "WITHOUT WARRANTY OF ANY KIND",
+        "INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY",
+    ]
+    for phrase in required_phrases:
+        assert phrase in license_text, f"LICENSE 缺少关键短语: {phrase!r}"
+
+
+# ── 场景 14：LICENSE 行数在 21-23 之间 ──────────────────────────────────────
+
+
+def test_license_line_count(license_text: str) -> None:
+    lines = license_text.splitlines()
+    count = len(lines)
+    assert 21 <= count <= 23, f"LICENSE 行数应在 21-23 之间，实际为 {count}"
