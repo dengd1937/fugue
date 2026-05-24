@@ -255,3 +255,44 @@ implementer 在 RED→GREEN 中自行决定每条 bullet 的具体措辞与排�
 
 后续工作流：Development Workflow（writing-plans → subagent-driven-development → code-review → finishing-a-development-branch）
 理由：纯包元数据 + 文档变更，无运行期行为变化；4 任务每个不超过 2 个文件，符合 SDD 任务粒度。
+
+## Implementation Deviations
+
+### 2026-05-25 — T1 预防性 pin `hatchling>=1.27`
+
+**偏差章节**：Technical Design / Constraints
+
+**原方案**：spec Technical Constraints & Risks 段写"`[build-system].requires = ["hatchling"]` 未 pin 版本，pip/uv 会拉最新版（≥ 1.27）；**如出错可**显式 pin 为 `hatchling>=1.27`"——条件触发。
+
+**实际实现**：T1 实施时**预防性**直接 pin 为 `["hatchling>=1.27"]`（pyproject.toml line 2），未等待出错。
+
+**原因**：风险 1 的缓解路径明确，预先 pin 不增加成本但消除潜在的不可重复构建风险；与 plan 风险 1 段精神一致。
+
+### 2026-05-25 — T1 同步上调 `.github/workflows/ci.yml` 的 `--cov-fail-under`
+
+**偏差章节**：Technical Design / Task Decomposition
+
+**原方案**：spec 4.10 任务表 T1 列出文件仅 `pyproject.toml`，未列 `.github/workflows/ci.yml`。
+
+**实际实现**：T1 同时修改 ci.yml line 48，把显式 CLI `--cov-fail-under=90` 同步上调为 96。
+
+**原因**：plan dual-review pass 2 发现 ci.yml 的 CLI 参数会覆盖 pyproject `addopts`，若不同步则 CI 仍按 90 门控，本任务声明的"≥ 96 由 pytest 硬性保证"在 CI 上失效。spec 是事前文档，未预见到 CLI/addopts 覆盖关系；plan dual-review 补入这一点，作为 spec 的事实更正。
+
+### 2026-05-25 — T4 CHANGELOG 内容在 pass 2 修复 6 处事实错误
+
+**偏差章节**：Technical Design / Content
+
+**原方案**：spec 4.9 节列出 CHANGELOG 必须覆盖的 7 个子模块要点（关键词级宽松约束）。
+
+**实际实现**：T4 implementer 首次实现时在 7 个子模块下生成了与实际源码不符的虚构内容：
+
+- 检索引擎节点列表写为 `query_transform → retrieve → grade → generate → parse → route`（`parse` / `route` 节点不存在；遗漏 `prepare_fallback` / `post_process`）
+- `route_strategy` 枚举写为 `dense-only / sparse-only / hybrid`（实际仅 `all` / `intent`）
+- 错误类层次写为 `ConfigError / ProviderError / RetrievalError`（实际类名带 `Ragline` 前缀，且有 5 个子类）
+- `chunkers` 描述为"固定窗口 / 语义分块"（实际仅 `recursive`）
+- `mock_rag_providers` 描述为"pytest fixture"（实际是 `@contextmanager` 装饰的上下文管理器）
+- HTTP Server 列了"支持 CORS 中间件与请求/响应结构化日志"（源码 `src/ragline/server/` 没有这些）
+
+dual-review（code-quality + spec）同时 BLOCK，pass 2 修复全部 6 处，使 CHANGELOG 内容与源码字符级对齐。
+
+**原因**：spec 4.9 节的关键词级宽松约束（场景 27 使用 `any(kw in block_text for kw in keywords)` 匹配）允许测试通过即使内容虚构。本次问题揭示了"关键词宽松匹配"作为唯一验证机制的不足；后续 CHANGELOG 维护需要人工或额外校验工具来保证内容真实性。spec 验证策略保留，但需在 reviewer 阶段补充事实校验。
