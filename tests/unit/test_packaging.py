@@ -5,16 +5,21 @@ TDD：先写测试看 RED，再实现看 GREEN。
 
 from __future__ import annotations
 
+import re
 import subprocess
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import pytest
 
 ROOT = Path(__file__).parent.parent.parent
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 CI_YML_PATH = ROOT / ".github" / "workflows" / "ci.yml"
+
+# ── 预编译正则（模块级）──────────────────────────────────────────────────────
+_H4_RE = re.compile(r"^#### (.+)$", re.MULTILINE)
+_SECTION_BOUND_RE = re.compile(r"^#{2,3} ", re.MULTILINE)
 
 
 @pytest.fixture(scope="module")
@@ -258,3 +263,110 @@ def test_uv_lock_check() -> None:
     except FileNotFoundError:
         pytest.skip("uv 未安装，跳过 lock 一致性检查")
     assert result.returncode == 0, f"uv lock --check 退出码非 0\nstdout: {result.stdout}\nstderr: {result.stderr}"
+
+
+# ── CHANGELOG.md 测试 ─────────────────────────────────────────────────────────
+
+CHANGELOG_PATH = ROOT / "CHANGELOG.md"
+
+
+@pytest.fixture(scope="module")
+def changelog_text() -> str:
+    if not CHANGELOG_PATH.exists():
+        pytest.skip("CHANGELOG.md 不存在")
+    return CHANGELOG_PATH.read_text(encoding="utf-8")
+
+
+# ── 场景 21：CHANGELOG.md 存在 ───────────────────────────────────────────────
+
+
+def test_changelog_exists() -> None:
+    assert CHANGELOG_PATH.exists(), "项目根目录缺少 CHANGELOG.md 文件"
+    assert CHANGELOG_PATH.is_file(), "CHANGELOG.md 不是普通文件"
+
+
+# ── 场景 22：第一行以 # Changelog 开头 ──────────────────────────────────────
+
+
+def test_changelog_first_line(changelog_text: str) -> None:
+    first_line = changelog_text.splitlines()[0]
+    assert first_line.startswith("# Changelog"), f"CHANGELOG.md 第一行应以 '# Changelog' 开头，实际为 {first_line!r}"
+
+
+# ── 场景 23：含 Keep a Changelog 子串 ───────────────────────────────────────
+
+
+def test_changelog_keep_a_changelog(changelog_text: str) -> None:
+    assert "Keep a Changelog" in changelog_text, "CHANGELOG.md 应引用 'Keep a Changelog'"
+
+
+# ── 场景 24：含 Semantic Versioning 子串 ─────────────────────────────────────
+
+
+def test_changelog_semantic_versioning(changelog_text: str) -> None:
+    assert "Semantic Versioning" in changelog_text, "CHANGELOG.md 应引用 'Semantic Versioning'"
+
+
+# ── 场景 25：含 0.1.0 节标题（固定日期 2026-05-24）────────────────────────────
+
+
+def test_changelog_version_section(changelog_text: str) -> None:
+    assert "## [0.1.0] - 2026-05-24" in changelog_text, "CHANGELOG.md 应含 '## [0.1.0] - 2026-05-24' 节标题"
+
+
+# ── 场景 26：0.1.0 节下含 ### Added 段标题 ──────────────────────────────────
+
+
+def test_changelog_added_section(changelog_text: str) -> None:
+    version_idx = changelog_text.index("## [0.1.0]")
+    section_after = changelog_text[version_idx:]
+    assert "### Added" in section_after, "## [0.1.0] 节下应含 '### Added' 段标题"
+
+
+# ── 场景 27：### Added 段下含 7 个 #### 子模块标题及对应关键词 ──────────────
+
+
+_SUBMODULE_KEYWORDS: Final[list[tuple[str, tuple[str, ...]]]] = [
+    ("顶层 API", ("RAG", "RaglineConfig")),
+    ("检索引擎", ("LangGraph", "query_transform")),
+    ("内置 Handlers", ("transforms", "retrievers", "rrf")),
+    ("Providers", ("LLM", "Embedding", "ChromaDB")),
+    ("HTTP Server", ("FastAPI", "[server]")),
+    ("对外测试支持", ("FakeLLM", "ragline.testing")),
+    ("工程基线", ("py.typed", "coverage", "import-linter")),
+]
+
+
+def test_changelog_submodule_keywords(changelog_text: str) -> None:
+    """### Added 下 7 个子模块标题均存在，且各自后续内容含对应关键词（宽松匹配：每个子模块至少含一个关键词）。"""
+    added_idx = changelog_text.index("### Added")
+    # 取 ### Added 之后的内容（截止到下一个同级 ### 或 ## 节）
+    rest = changelog_text[added_idx + len("### Added") :]
+    # 找下一个同级或父级 ### / ## 节的位置作为 Added 段的结束（不匹配 ####）
+    next_section = _SECTION_BOUND_RE.search(rest)
+    added_body = rest[: next_section.start()] if next_section is not None else rest
+
+    # 验证 7 个 #### 子模块标题存在
+    h4_titles = _H4_RE.findall(added_body)
+    assert len(h4_titles) >= 7, f"### Added 下应含至少 7 个 #### 子模块标题，实际找到 {len(h4_titles)} 个: {h4_titles}"
+
+    # 对每个子模块验证关键词（宽松匹配：含任一关键词即可）
+    for module_hint, keywords in _SUBMODULE_KEYWORDS:
+        # 找对应子模块块
+        pattern = rf"(?s)#### [^\n]*{re.escape(module_hint.split('（')[0].strip())}[^\n]*\n(.*?)(?=\n####|\Z)"
+        match = re.search(pattern, added_body)
+        assert match is not None, f"### Added 下未找到含 '{module_hint}' 的 #### 子模块标题"
+        block_text = match.group(0)
+        assert any(kw in block_text for kw in keywords), (
+            f"子模块 '{module_hint}' 的内容应含关键词 {keywords} 之一，实际内容片段: {block_text[:200]!r}"
+        )
+
+
+# ── 场景 28：含 ### Notes 段，说明 0.x API 可能调整 ─────────────────────────
+
+
+def test_changelog_notes_section(changelog_text: str) -> None:
+    assert "### Notes" in changelog_text, "CHANGELOG.md 应含 '### Notes' 段"
+    notes_idx = changelog_text.index("### Notes")
+    notes_body = changelog_text[notes_idx:]
+    assert "0.x" in notes_body, "### Notes 段应提及 '0.x' API 可能调整"
