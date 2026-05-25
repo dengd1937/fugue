@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -8,6 +8,22 @@ version = "0.1.0"
 description = "配置驱动的通用 Python RAG 库"
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "dengdi", email = "dengdi1803@gmail.com" }]
+keywords = ["rag", "llm", "langgraph", "retrieval", "embedding", "chromadb", "bm25"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
 dependencies = [
     "langgraph>=0.3,<0.4",
     "langchain-core>=0.3",
@@ -16,8 +32,13 @@ dependencies = [
     "pyyaml>=6.0",
     "rank-bm25>=0.2.2",
     "chromadb>=0.5",
-    "transformers>=4.44.2,<5",
 ]
+
+[project.urls]
+Homepage = "https://github.com/dengd1937/ragline"
+Repository = "https://github.com/dengd1937/ragline"
+Issues = "https://github.com/dengd1937/ragline/issues"
+Changelog = "https://github.com/dengd1937/ragline/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
@@ -36,6 +57,7 @@ server = [
 ]
 bge = [
     "FlagEmbedding>=1.2",
+    "transformers>=4.44.2,<5",
 ]
 chroma = []
 pdf = [
@@ -70,7 +92,7 @@ module = ["FlagEmbedding.*", "chromadb.*", "rank_bm25.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "-m 'not e2e' --cov=ragline --cov-report=term-missing --cov-fail-under=90"
+addopts = "-m 'not e2e' --cov=ragline --cov-report=term-missing --cov-fail-under=96"
 markers = [
     "e2e: marks tests as end-to-end (requires API keys)",
     "slow: marks tests as slow (large data / performance benchmarks)",
