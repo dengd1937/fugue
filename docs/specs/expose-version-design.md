@@ -168,3 +168,41 @@ Badge 地址（shields.io）：
 5. D5：测试场景 29 + 30 追加到 `tests/unit/test_packaging.py`
 6. D6：`__all__` 字母序由 implementer 按现有风格决定
 7. D7：单任务合打（已与用户确认）
+
+## Implementation Deviations
+
+### 2026-05-25 — D1 修订：增加 try/except + fallback
+
+**偏差章节**：Technical Design / D1 实现
+
+**原方案**：D1 选 fail-loud（不加 try/except），包未安装时直接 raises `PackageNotFoundError`，让开发者立即发现安装问题。
+
+**实际实现**：pass 2 采纳 python reviewer 建议，加入 try/except 包裹 + fallback 值 `"0.0.0+unknown"`：
+
+```python
+try:
+    __version__: str = _pkg_version("ragline")
+except _PackageNotFoundError:  # pragma: no cover
+    __version__ = "0.0.0+unknown"
+```
+
+**原因**：
+- 业界主流模式：setuptools / Flask / httpx 等成熟包均采用同样的 try/except fallback
+- "fail-loud" 在裸 clone 未运行 `uv sync` 的开发者新手场景下产生不友好的 `ImportError`
+- `# pragma: no cover` 避免 fallback 分支拖累 coverage
+- 用户在 AskUserQuestion 中明确选择采纳 reviewer 建议
+
+### 2026-05-25 — D2 修订：`__version__` 不进 `__all__`
+
+**偏差章节**：Technical Design / D2 实现
+
+**原方案**：D2 把 `__version__` 加入 `__all__` 列表，让 `from ragline import *` 也能拿到版本号。
+
+**实际实现**：pass 2 采纳 python reviewer 建议，`__version__` 不进 `__all__`。`ragline.__version__` 直接访问仍可用，只是不通过 `from ragline import *` 导出。
+
+**原因**：
+- Python 惯例：dunder 属性（`__version__` / `__author__` 等）不出现在 `__all__`，避免污染消费者命名空间
+- 参考主流包（pip / requests / httpx / Flask）的 `__all__` 都不含 `__version__`
+- 用户在 AskUserQuestion 中明确选择采纳 reviewer 建议
+
+**未来防御**：global reviewer 提示可加测试 `assert "__version__" not in ragline.__all__` 守护该决策；属可选补强，未在本 PR 实现
