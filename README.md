@@ -1,5 +1,10 @@
 # Ragline
 
+[![PyPI version](https://img.shields.io/pypi/v/ragline.svg)](https://pypi.org/project/ragline/)
+[![License: MIT](https://img.shields.io/pypi/l/ragline.svg)](https://github.com/dengd1937/ragline/blob/main/LICENSE)
+[![Python versions](https://img.shields.io/pypi/pyversions/ragline.svg)](https://pypi.org/project/ragline/)
+[![CI status](https://github.com/dengd1937/ragline/actions/workflows/ci.yml/badge.svg)](https://github.com/dengd1937/ragline/actions/workflows/ci.yml)
+
 Configuration-driven RAG. Topology stays, behavior plugs in.
 
 Ragline 是一个配置驱动的 Python RAG 库，基于 LangGraph 构建。图拓扑（transform → retrieve → grade → process → generate）固定不变，每个节点的行为通过 YAML 配置和插件机制动态注入。

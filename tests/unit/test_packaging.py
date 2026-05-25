@@ -13,6 +13,8 @@ from typing import Any, Final
 
 import pytest
 
+import ragline
+
 ROOT = Path(__file__).parent.parent.parent
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 CI_YML_PATH = ROOT / ".github" / "workflows" / "ci.yml"
@@ -20,6 +22,7 @@ CI_YML_PATH = ROOT / ".github" / "workflows" / "ci.yml"
 # ── 预编译正则（模块级）──────────────────────────────────────────────────────
 _H4_RE = re.compile(r"^#### (.+)$", re.MULTILINE)
 _SECTION_BOUND_RE = re.compile(r"^#{2,3} ", re.MULTILINE)
+_SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:[.-].+)?$")
 
 
 @pytest.fixture(scope="module")
@@ -370,3 +373,22 @@ def test_changelog_notes_section(changelog_text: str) -> None:
     notes_idx = changelog_text.index("### Notes")
     notes_body = changelog_text[notes_idx:]
     assert "0.x" in notes_body, "### Notes 段应提及 '0.x' API 可能调整"
+
+
+# ── 场景 29：ragline.__version__ 属性存在且格式正确 ──────────────────────────
+
+
+def test_version_attribute_exists() -> None:
+    assert hasattr(ragline, "__version__"), "ragline 应暴露 __version__ 属性"
+    assert isinstance(ragline.__version__, str), "__version__ 应为 str 类型"
+    assert _SEMVER_RE.match(ragline.__version__), f"__version__ 应符合 SemVer 格式，实际值: {ragline.__version__!r}"
+
+
+# ── 场景 30：ragline.__version__ 与 pyproject.toml 中的版本一致 ──────────────
+
+
+def test_version_matches_pyproject(pyproject: dict[str, Any]) -> None:
+    assert ragline.__version__ == pyproject["project"]["version"], (
+        f"ragline.__version__ ({ragline.__version__!r}) 应与 pyproject.toml 中的版本 "
+        f"({pyproject['project']['version']!r}) 一致"
+    )
